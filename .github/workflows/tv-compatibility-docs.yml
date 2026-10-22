@@ -60,4 +60,3 @@ jobs:
             structured GitHub Issue Forms. No report is treated as verified.
             Please review models, Android versions and results before merging.
             Do not treat install success as proof that all TV controls work.
-          labels: documentation
