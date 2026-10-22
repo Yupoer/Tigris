@@ -64,8 +64,11 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
         private val edge = android.graphics.RadialGradient(0f, 0f, 1f,
             intArrayOf(Color.argb(230, 255, 255, 255), Color.TRANSPARENT),
             null, android.graphics.Shader.TileMode.CLAMP)
-        // Added rather than layered on: the glass glows brighter in its own colours instead of turning milky.
-        private val lightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { blendMode = android.graphics.BlendMode.PLUS }
+        // PorterDuff ADD provides the additive glow on API 28+ without referencing BlendMode
+        // (API 29). This View is constructed on Android 9 even when live glass is disabled.
+        private val lightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.ADD)
+        }
         init { visibility = View.INVISIBLE; translationZ = ctx.dp(100.5f).toFloat() }
         override fun onDraw(canvas: Canvas) {
             mask.reset()
