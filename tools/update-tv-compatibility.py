@@ -68,7 +68,7 @@ def request_issues():
 def form_fields(body):
     # Only matching GitHub Issue Form headings are used.
     fields = {}
-    for title, value in re.findall(r"(?ms)^### ([^\n]+)\n(.*?)(?=^### |\Z)", body or ""):
+    for title, value in re.findall(r"(?ms)^### ([^\n]+)\n(.*?)(?=^### |\Z)", (body or "").replace("\r\n", "\n")):
         fields[title.strip()] = value.strip()
     values = {key: fields.get(label, "") for key, label in KEYS.items()}
     if any(not val or val in {"_No response_", "No response"} for val in values.values()):
