@@ -1,7 +1,6 @@
 name: "📺 电视安装 / TV compatibility report"
 description: "反馈真实电视上的安装、启动、功能兼容性 / Report install, launch and feature compatibility on a real TV"
 title: "[TV] 品牌 型号 / Brand Model"
-labels: ["tv-compatibility"]
 body:
   - type: markdown
     attributes:
