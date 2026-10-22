@@ -62,8 +62,8 @@ class TVCompatibilityDocsTest(unittest.TestCase):
         self.assertIsNone(compat.form_fields("Tigris won't install on my TV"))
         incomplete = FORM.replace("Sony\n", "_No response_\n", 1)
         self.assertIsNone(compat.form_fields(incomplete))
-        self.assertEqual("No structured community reports yet. [Submit a report]",
-                         compat.build([{"number": 4, "title": "generic issue", "body": FORM, "labels": []}], True)[:65])
+        self.assertTrue(compat.build([{"number": 4, "title": "generic issue", "body": FORM, "labels": []}], True).startswith(
+            "No structured community reports yet. [Submit a report]"))
 
     def test_both_languages_are_reported_not_verified(self):
         zh = compat.build([self.issue()], False)
