@@ -122,7 +122,9 @@ case "$BRAND" in *xiaomi*|*redmi*|*tcl*|*ffalcon*) GUARD=true ;; esac
 CONFIG=()
 [[ "$KEEP_ADB" == preserve ]] || CONFIG+=(--ez keep_adb "$([[ "$KEEP_ADB" == 1 ]] && echo true || echo false)")
 [[ "$GUARD" == true ]] && CONFIG+=(--ez guard true)
-ad shell am broadcast -a "$PKG.CONFIG" -n "$PKG/.ConfigReceiver" "${CONFIG[@]}"
+if [[ "$GUARD" == true || "$KEEP_ADB" != preserve ]]; then
+  ad shell am broadcast -a "$PKG.CONFIG" -n "$PKG/.ConfigReceiver" "${CONFIG[@]}"
+fi
 ad shell am start -n "$PKG/.HomeActivity"
 verify
 echo "Original launcher snapshot: $STATE (keep this directory for restore)."
