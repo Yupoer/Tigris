@@ -69,6 +69,11 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private lateinit var bg: ImageView
     private lateinit var header: FrameLayout
     private lateinit var clockText: TextView
+    private lateinit var weatherText: TextView
+    private lateinit var bigWeather: TextView
+    private var weatherRequestInFlight = false
+    private var weatherLastAttemptAt = Long.MIN_VALUE
+    private var weatherLastCity = ""
     /** The large clock top left, with the date above it ([Prefs.CLOCK_LARGE]). */
     private lateinit var bigClock: LinearLayout
     private lateinit var bigDate: TextView
@@ -189,6 +194,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         override fun run() {
             updateClock()
             applyBackground()
+            updateWeather()
             main.postDelayed(this, 60_000 - System.currentTimeMillis() % 60_000 + 50)
         }
     }
@@ -305,15 +311,23 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             letterSpacing = -0.02f
             setShadowLayer(dp(12).toFloat(), 0f, 0f, Color.argb(50, 0, 0, 0))
         }
+        bigWeather = text(18f, Color.argb(205, 255, 255, 255), weight = 500).apply {
+            visibility = View.GONE
+        }
         bigClock = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             addView(bigDate, LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(4) })
             addView(bigTime, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(10) })
+            addView(bigWeather, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(6) })
         }
         header.addView(bigClock, FrameLayout.LayoutParams(-2, -2).apply {
             leftMargin = side - dp(4); topMargin = (sh * 0.197f).toInt()
         })
         clockText = text(14f, weight = 600).apply {
+            setShadowLayer(dp(5).toFloat(), 0f, dp(1).toFloat(), Color.argb(140, 0, 0, 0))
+        }
+        weatherText = text(13f, Color.argb(215, 255, 255, 255), weight = 500).apply {
+            visibility = View.GONE
             setShadowLayer(dp(5).toFloat(), 0f, dp(1).toFloat(), Color.argb(140, 0, 0, 0))
         }
         val icons = LinearLayout(this).apply {
@@ -330,6 +344,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         ccButton = IconButton(this, R.drawable.ic_toggles) { control.open() }
         netButton.contentDescription = "网络设置"
         ccButton.contentDescription = "控制中心"
+        icons.addView(weatherText, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = dp(8) })
         icons.addView(clockText, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = dp(10) })
         icons.addView(netButton, LinearLayout.LayoutParams(dp(28), dp(28)).apply { marginEnd = dp(6) })
         icons.addView(ccButton, LinearLayout.LayoutParams(dp(28), dp(28)))
@@ -621,7 +636,50 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         val style = prefs.clockStyle
         clockText.visibility = if (style == Prefs.CLOCK_CORNER) View.VISIBLE else View.GONE
         bigClock.visibility = if (style == Prefs.CLOCK_LARGE) View.VISIBLE else View.GONE
+        if (!WeatherPolicy.shouldShow(prefs.weatherEnabled, prefs.weatherCity, style)) {
+            showWeather(null)
+        } else {
+            val existing = if (weatherText.visibility == View.VISIBLE) weatherText.text.toString()
+                else if (bigWeather.visibility == View.VISIBLE) bigWeather.text.toString() else null
+            showWeather(existing)
+        }
         updateClock()
+    }
+
+    /** Completely absent from the visual hierarchy until weather is enabled and fetched. */
+    private fun showWeather(value: String?) {
+        val visible = !value.isNullOrBlank() && WeatherPolicy.shouldShow(
+            prefs.weatherEnabled, prefs.weatherCity, prefs.clockStyle)
+        weatherText.visibility = if (visible && prefs.clockStyle == Prefs.CLOCK_CORNER) View.VISIBLE else View.GONE
+        bigWeather.visibility = if (visible && prefs.clockStyle == Prefs.CLOCK_LARGE) View.VISIBLE else View.GONE
+        if (visible) {
+            weatherText.text = value
+            bigWeather.text = value
+        }
+    }
+
+    private fun updateWeather() {
+        val city = prefs.weatherCity.trim()
+        if (!WeatherPolicy.shouldShow(prefs.weatherEnabled, city, prefs.clockStyle)) {
+            showWeather(null)
+            return
+        }
+        if (city != weatherLastCity) {
+            weatherLastCity = city
+            weatherLastAttemptAt = Long.MIN_VALUE
+            showWeather(null)
+        }
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (weatherRequestInFlight || !WeatherPolicy.shouldRefresh(now, weatherLastAttemptAt)) return
+        weatherRequestInFlight = true
+        weatherLastAttemptAt = now
+        net.execute {
+            val label = runCatching { Weather.read(applicationContext, city) }.getOrNull()
+            main.post {
+                weatherRequestInFlight = false
+                if (!isDestroyed && prefs.weatherCity.trim() == city) showWeather(label)
+            }
+        }
     }
 
     /** The home scene alone, without the control center or any dialog; the glass controls sample it. */
