@@ -117,7 +117,7 @@ App folders, phone-based avatar upload, an update center for Tigris and Miracast
 
 - **tvOS-style home screen:** docked 16:9 app tiles, focus zoom, directional tilt, animated light sweep and shadow; optional portrait icon; compact clock, large clock with date, or no clock; 12/24-hour time.
 - **Settings:** a large-icon tvOS-inspired settings screen with grouped controls. Focus animation and Control Center style default to *Auto*, choosing a lighter style on TVs with under 2.5 GB RAM, Android below 10, or fewer than four CPU cores.
-- **Recent apps first:** launching an app moves it to the front without changing the relative order of other apps. Merely moving focus, failed launches or HDMI switching do not reorder apps. Long-press to rearrange manually.
+- **Recently opened apps first (optional):** enabled by default; a successfully opened app moves to the front without reordering other apps. Turn it off under Settings → Apps to keep the current manual order. Long-press an app and choose Edit Home Screen to rearrange it. Focus changes, failed launches and HDMI switching never reorder apps.
 - **Manage apps:** long-press items for actions including removing preinstalled user-visible packages with `pm uninstall --user 0` when allowed (system partition APKs are not deleted). Restore them from the deleted-preinstalled-apps section. Essential TV system components are protected from this action.
 - **Liquid Glass Dock:** precomputed blur, refraction, highlights and shadows from the wallpaper avoid expensive per-frame GPU effects.
 - **Top Shelf-style content:** selected app tiles can show public-feed content from Bilibili and Douyu. Their corresponding TV apps are required.
