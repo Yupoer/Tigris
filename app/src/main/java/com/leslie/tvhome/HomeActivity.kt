@@ -74,6 +74,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private var weatherRequestInFlight = false
     private var weatherLastAttemptAt = Long.MIN_VALUE
     private var weatherLastCity = ""
+    private var weatherCachedLabel: String? = null
     /** The large clock top left, with the date above it ([Prefs.CLOCK_LARGE]). */
     private lateinit var bigClock: LinearLayout
     private lateinit var bigDate: TextView
@@ -667,8 +668,10 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         if (city != weatherLastCity) {
             weatherLastCity = city
             weatherLastAttemptAt = Long.MIN_VALUE
+            weatherCachedLabel = null
             showWeather(null)
         }
+        weatherCachedLabel?.let { showWeather(it) }
         val now = android.os.SystemClock.elapsedRealtime()
         if (weatherRequestInFlight || !WeatherPolicy.shouldRefresh(now, weatherLastAttemptAt)) return
         weatherRequestInFlight = true
@@ -677,7 +680,10 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             val label = runCatching { Weather.read(applicationContext, city) }.getOrNull()
             main.post {
                 weatherRequestInFlight = false
-                if (!isDestroyed && prefs.weatherCity.trim() == city) showWeather(label)
+                if (!isDestroyed && prefs.weatherCity.trim() == city) {
+                    weatherCachedLabel = label
+                    showWeather(label)
+                }
             }
         }
     }
