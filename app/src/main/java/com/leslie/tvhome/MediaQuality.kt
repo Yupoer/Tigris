@@ -3,7 +3,9 @@ package com.leslie.tvhome
 import android.app.ActivityManager
 import android.content.Context
 import android.hardware.display.DisplayManager
+import android.media.MediaCodecInfo
 import android.media.MediaCodecList
+import android.os.Build
 import android.view.Display
 
 /**
@@ -34,15 +36,20 @@ internal object MediaQuality {
         else -> displayIsUhd(ctx) && enoughMemory(ctx)
     }
 
+    private fun isHardware(codec: MediaCodecInfo): Boolean =
+        if (Build.VERSION.SDK_INT >= 29) codec.isHardwareAccelerated
+        else !codec.name.contains("google", true) && !codec.name.contains("software", true) &&
+            !codec.name.startsWith("c2.android", true)
+
     fun hevcDecoderPresent(): Boolean = runCatching {
         MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { codec ->
-            !codec.isEncoder && codec.supportedTypes.any { it.equals("video/hevc", true) }
+            !codec.isEncoder && isHardware(codec) && codec.supportedTypes.any { it.equals("video/hevc", true) }
         }
     }.getOrDefault(false)
 
     fun canDecode4kHevc(): Boolean = runCatching {
         MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.any { codec ->
-            !codec.isEncoder && codec.supportedTypes.any { mime ->
+            !codec.isEncoder && isHardware(codec) && codec.supportedTypes.any { mime ->
                 mime.equals("video/hevc", true) &&
                     codec.getCapabilitiesForType(mime).videoCapabilities
                         .areSizeAndRateSupported(3840, 2160, 24.0)
