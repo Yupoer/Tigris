@@ -734,7 +734,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private fun rememberOpened(pkg: String) {
         if (!prefs.recentFirst) return
         val visible = adapter.apps.map { it.pkg }
-        prefs.order = RecentOrder.promote(pkg, visible, prefs.order)
+        prefs.order = RecentOrder.afterLaunch(pkg, visible, prefs.order, prefs.recentFirst)
         reload()
     }
 
