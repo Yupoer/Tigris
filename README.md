@@ -123,7 +123,7 @@ Agent 必须能在这台电脑上实际运行命令。手机聊天或网页版�
 
 ### 2.3 一行命令（macOS / Linux）
 
-电脑需要先安装 `adb`（Android SDK Platform-Tools）、`curl` 和 `python3`。脚本默认下载最新正式版，校验 `SHA256SUMS.txt`，保存原桌面快照，覆盖安装时保留 App 配置。
+电脑需要先安装 `adb`（Android SDK Platform-Tools）、`curl` 和 `python3`。脚本默认下载最新正式版，按版本号解析 APK 与对应的 SHA-256 校验文件，保存原桌面快照，覆盖安装时保留 App 配置。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/lesnolie/Tigris/main/install.sh \
@@ -132,7 +132,7 @@ curl -fsSL https://raw.githubusercontent.com/lesnolie/Tigris/main/install.sh \
 
 - 把 `192.168.1.20` 换成电视 IP。
 - 小米电视想保持 ADB 常开时使用 `KEEP_ADB=1`；不需要可改为 `KEEP_ADB=0`。
-- 指定版本：管道右侧写成 `KEEP_ADB=1 TV=192.168.1.20 VERSION=v2.0.4 bash`。
+- 指定版本：管道右侧写成 `KEEP_ADB=1 TV=192.168.1.20 VERSION=v2.0.6 bash`；旧版本未带版本号的文件也仍兼容。
 - TCL / 雷鸟使用守护包：把末尾的 `bash` 换成 `bash -s -- -s guard`。
 - 原始配置默认保存在 `~/.local/state/tigris/<电视IP>:5555/`；升级不会覆盖首次快照。
 
@@ -164,34 +164,40 @@ adb -s 192.168.1.20:5555 shell settings get secure enabled_notification_listener
 
 #### 第二步：下载并安装
 
-索尼、小米、原生 Android TV 等一般使用标准版。Windows PowerShell：
+索尼、小米、原生 Android TV 等一般使用标准版。发布的 APK 均带版本号（如 `Tigris-v2.0.6.apk`），可在 [最新 Release](https://github.com/lesnolie/Tigris/releases/latest) 手动下载，也可使用校验 SHA-256 的下载助手：
+
+Windows PowerShell：
 
 ```powershell
-curl.exe -L -o Tigris.apk https://github.com/lesnolie/Tigris/releases/latest/download/Tigris.apk
-adb -s 192.168.1.20:5555 install -r Tigris.apk
+curl.exe -fsSL -o download-release.py https://raw.githubusercontent.com/lesnolie/Tigris/main/tools/download-release.py
+$apk = python .\download-release.py standard
+adb -s 192.168.1.20:5555 install -r $apk
 ```
 
 macOS / Linux：
 
 ```bash
-curl -fL -o Tigris.apk https://github.com/lesnolie/Tigris/releases/latest/download/Tigris.apk
-adb -s 192.168.1.20:5555 install -r Tigris.apk
+curl -fsSL -o download-release.py https://raw.githubusercontent.com/lesnolie/Tigris/main/tools/download-release.py
+apk=$(python3 download-release.py standard)
+adb -s 192.168.1.20:5555 install -r "$apk"
 ```
 
 TCL / 雷鸟国行固件通常拒绝直接安装，也拒绝声明 HOME 的标准包，需要使用守护版和电视自带的「多屏互动」：
 
 ```powershell
-curl.exe -L -o Tigris-guard.apk https://github.com/lesnolie/Tigris/releases/latest/download/Tigris-guard.apk
-curl.exe -L -o tcast-push.py https://raw.githubusercontent.com/lesnolie/Tigris/main/tools/tcast-push.py
-python .\tcast-push.py 192.168.1.20 .\Tigris-guard.apk
+curl.exe -fsSL -o download-release.py https://raw.githubusercontent.com/lesnolie/Tigris/main/tools/download-release.py
+$apk = python .\download-release.py guard
+curl.exe -fsSL -o tcast-push.py https://raw.githubusercontent.com/lesnolie/Tigris/main/tools/tcast-push.py
+python .\tcast-push.py 192.168.1.20 $apk
 ```
 
 macOS / Linux：
 
 ```bash
-curl -fL -o Tigris-guard.apk https://github.com/lesnolie/Tigris/releases/latest/download/Tigris-guard.apk
-curl -fL -o tcast-push.py https://raw.githubusercontent.com/lesnolie/Tigris/main/tools/tcast-push.py
-python3 tcast-push.py 192.168.1.20 Tigris-guard.apk
+curl -fsSL -o download-release.py https://raw.githubusercontent.com/lesnolie/Tigris/main/tools/download-release.py
+apk=$(python3 download-release.py guard)
+curl -fsSL -o tcast-push.py https://raw.githubusercontent.com/lesnolie/Tigris/main/tools/tcast-push.py
+python3 tcast-push.py 192.168.1.20 "$apk"
 ```
 
 运行推送脚本时，电视角落会出现「多屏互动：正在发起应用推送」，用遥控器选择 **同意**。如果电脑防火墙询问，允许脚本访问局域网。
@@ -280,7 +286,7 @@ curl.exe -s -u ':<PIN>' http://192.168.1.20/sony/accessControl --data-binary '@b
 1. **桌面守护**：无障碍服务只监听前台窗口变化，不读取屏幕内容。只在确认原厂首页持续出现时接管；应用、输入源或弹窗出现会取消等待。开机、唤醒和服务恢复本身不会触发接管，短时间反复跳转会暂缓自动接管。
 2. **后台恢复**：通知监听服务不读取通知。系统结束 Tigris 进程后，Android 会重新绑定监听器，从而拉起进程并恢复桌面守护。
 3. **保持 ADB 开启**：小米唤醒后会关闭 ADB。启用该选项后，Tigris 用 `WRITE_SECURE_SETTINGS` 自动重新打开，方便以后升级。
-4. **TCL 守护版**：TCL 拒绝标准 HOME APK，因此使用不声明 HOME 的 `Tigris-guard.apk`，通过「多屏互动」安装，并放行 `APP_AUTO_START` / `APP_ASSOC_START`。
+4. **TCL 守护版**：TCL 拒绝标准 HOME APK，因此使用不声明 HOME 的守护版（发布文件名如 `Tigris-guard-v2.0.6.apk`），通过「多屏互动」安装，并放行 `APP_AUTO_START` / `APP_ASSOC_START`。
 
 | 权限或组件 | 用途 |
 |---|---|
