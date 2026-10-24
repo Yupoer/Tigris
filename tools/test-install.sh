@@ -41,6 +41,15 @@ printf com.saved.home/.Home > "$STATE_DIR/home"
 bash "$ROOT/install.sh" > "$TEST/output"
 [[ "$(cat "$STATE_DIR/home")" == com.saved.home/.Home ]]
 echo 'PASS upgrade retains initial snapshot'
+! grep -q -- '--ez keep_adb' "$LOG"
+echo 'PASS omitted keep_adb preserves user preference'
+: > "$LOG"
+KEEP_ADB=1 bash "$ROOT/install.sh" > "$TEST/output"
+grep -q -- '--ez keep_adb true' "$LOG"
+: > "$LOG"
+KEEP_ADB=0 bash "$ROOT/install.sh" > "$TEST/output"
+grep -q -- '--ez keep_adb false' "$LOG"
+echo 'PASS explicit keep_adb changes still apply'
 : > "$LOG"
 if FAIL_INSTALL=1 bash "$ROOT/install.sh" > "$TEST/output" 2>&1; then exit 1; fi
 ! grep -Eq 'uninstall|pm grant|set-home-activity|am broadcast' "$LOG"
