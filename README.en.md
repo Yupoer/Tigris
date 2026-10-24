@@ -47,7 +47,7 @@ A tvOS-inspired launcher for Android TV, featuring a Liquid Glass Dock, Top Shel
 | **Older Xiaomi TV (model not supplied)** | OS/API unknown, below APK requirement | ❌ Official APK rejected (`INSTALL_FAILED_OLDER_SDK`) | Specific model and API level still requested. This says nothing about all Xiaomi TVs | [#3](https://github.com/lesnolie/Tigris/issues/3) |
 | **Skyworth / Coocaa 7S710_A3** | Android 8 / API 26 | ❌ Official APK unsupported; ✅ contributor's API 26 fork worked | Fork tested HDMI2 and Back-to-Tigris. **Official v2.0.2 Coocaa adapter has not been hardware-verified** | [#4](https://github.com/lesnolie/Tigris/pull/4) |
 
-**Which APK?** Use [Releases](https://github.com/lesnolie/Tigris/releases/latest): `Tigris.apk` for most TVs; `Tigris-guard.apk` plus [T-Cast installation](tools/tcast-push.py) for TCL/FFalcon China firmware. `INSTALL_FAILED_OLDER_SDK` means the device's API is below the APK's `minSdk`; trying another installer does not resolve that. Some OEM firmware requires additional home-guard setup; see [AGENTS.md](AGENTS.md).
+**Which APK?** Use [Releases](https://github.com/lesnolie/Tigris/releases/latest): `Tigris-vX.Y.Z.apk` for most TVs; `Tigris-guard-vX.Y.Z.apk` plus [T-Cast installation](tools/tcast-push.py) for TCL/FFalcon China firmware. Each published file includes the release version; [the download helper](tools/download-release.py) selects the appropriate asset and checks its SHA-256. `INSTALL_FAILED_OLDER_SDK` means the device's API is below the APK's `minSdk`; trying another installer does not resolve that. Some OEM firmware requires additional home-guard setup; see [AGENTS.md](AGENTS.md).
 
 ### Submit a TV report
 
@@ -105,7 +105,7 @@ curl -fsSL https://raw.githubusercontent.com/lesnolie/Tigris/main/install.sh \
   | TV=192.168.1.20 bash -s -- restore
 ```
 
-To explicitly keep ADB enabled, add `KEEP_ADB=1` before `bash`. The installer will not silently uninstall an APK when signatures differ. See the [installation and restore guide](docs/installation.md). On Windows, follow [AGENTS.md](AGENTS.md) with a command-capable desktop agent or use PowerShell/ADB manually; phone chat alone cannot operate the TV.
+To explicitly keep ADB enabled, add `KEEP_ADB=1` before `bash`. New releases ship `Tigris-vX.Y.Z.apk`, `Tigris-guard-vX.Y.Z.apk` and `SHA256SUMS-vX.Y.Z.txt`; the installer also accepts older filenames. The installer will not silently uninstall an APK when signatures differ. See the [installation and restore guide](docs/installation.md). On Windows, follow [AGENTS.md](AGENTS.md) with a command-capable desktop agent or use PowerShell/ADB manually; phone chat alone cannot operate the TV.
 
 ## Features
 
@@ -197,7 +197,7 @@ adb install -r app/build/outputs/apk/standard/release/app-standard-release.apk
 adb shell cmd package set-home-activity com.leslie.tvhome/.HomeActivity
 ```
 
-These locally built APKs use the local debug key and may not be installable over an already installed release signed with another key (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). **Back up configuration and request consent before uninstalling to change signing keys.** On TCL use `Tigris-guard.apk` and its dedicated installation method.
+These locally built APKs use the local debug key and may not be installable over an already installed release signed with another key (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). **Back up configuration and request consent before uninstalling to change signing keys.** On TCL use the versioned Guard APK and its dedicated installation method.
 
 For supported Sony BRAVIA TVs, register an IP-control client (the TV displays a four-digit PIN):
 
