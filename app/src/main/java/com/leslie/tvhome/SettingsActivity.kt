@@ -204,6 +204,47 @@ class SettingsActivity : Activity() {
             val opts = listOf(Prefs.CLOCK_CORNER, Prefs.CLOCK_LARGE, Prefs.CLOCK_OFF)
             prefs.clockStyle = opts[(opts.indexOf(prefs.clockStyle) + 1) % opts.size]
         }
+        // Unlike widget-heavy launchers, Tigris deliberately leaves weather fully off by default.
+        // Configuring a city does not implicitly enable it; we never infer location from IP.
+        row("天气显示（可选）", "默认关闭，不影响 tvOS 桌面。仅在手动填写城市且时钟开启后，才每 45 分钟请求一次天气；离线不显示。", {
+            onOff(prefs.weatherEnabled)
+        }) { v ->
+            if (prefs.weatherCity.isBlank() && !prefs.weatherEnabled) {
+                Toast.makeText(this, "请先在下一项填写天气城市", Toast.LENGTH_LONG).show()
+            } else {
+                prefs.weatherEnabled = !prefs.weatherEnabled
+                v.text = onOff(prefs.weatherEnabled)
+            }
+        }
+        row("天气城市", "手动输入城市名称，例如北京、上海、London。不请求定位权限，不根据 IP 推测位置；相同名称的城市可能需要写明地区。", {
+            prefs.weatherCity.ifBlank { "未设置" }
+        }, chevron = true) { v ->
+            val input = android.widget.EditText(this).apply {
+                setSingleLine(true)
+                setText(prefs.weatherCity)
+                hint = "例如：北京"
+            }
+            val wrapper = LinearLayout(this).apply {
+                setPadding(dp(24), dp(8), dp(24), dp(8))
+                addView(input, LinearLayout.LayoutParams(-1, -2))
+            }
+            android.app.AlertDialog.Builder(this)
+                .setTitle("天气城市")
+                .setView(wrapper)
+                .setPositiveButton("保存") { _, _ ->
+                    val city = input.text.toString().trim()
+                    if (city.length >= 2) {
+                        prefs.weatherCity = city
+                        v.text = city
+                    } else {
+                        prefs.weatherCity = ""
+                        prefs.weatherEnabled = false
+                        v.text = "未设置"
+                    }
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
         if (backdropFile(this) != null) row("设置页背景", "设置页用上传的背景图，或者普通的深色背景。", {
             if (prefs.settingsBg) "图片" else "普通"
         }) {
