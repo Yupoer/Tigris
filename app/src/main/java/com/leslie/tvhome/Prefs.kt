@@ -31,9 +31,9 @@ class Prefs(ctx: Context) {
         get() = sp.getString("order", "")!!.split(',').filter { it.isNotEmpty() }
         set(v) = sp.edit().putString("order", v.joinToString(",")).apply()
 
-    /** Preserve the current behavior on upgrade; users can opt into fixed manual ordering. */
+    /** New installs and upgrades start in fixed manual order; the user can opt in. */
     var recentFirst: Boolean
-        get() = sp.getBoolean("recent_first", true)
+        get() = sp.getBoolean("recent_first", false)
         set(v) = sp.edit().putBoolean("recent_first", v).apply()
 
     var hidden: Set<String>
