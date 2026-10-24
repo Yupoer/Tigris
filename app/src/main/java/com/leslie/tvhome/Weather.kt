@@ -44,7 +44,7 @@ internal object Weather {
         val now = System.currentTimeMillis()
         val saved = runCatching { JSONObject(cache.readText()) }.getOrNull()
         if (saved != null && saved.optString("city") == city &&
-            now - saved.optLong("updated", 0) in 0 until WeatherPolicy.UPDATE_MS) {
+            now - saved.optLong("updated", 0) in 0L until WeatherPolicy.UPDATE_MS) {
             return saved.optString("text").takeIf { it.isNotEmpty() }
         }
 
