@@ -140,6 +140,16 @@ class Prefs(ctx: Context) {
         get() = sp.getBoolean("clock_24", false)
         set(v) = sp.edit().putBoolean("clock_24", v).apply()
 
+    /** Optional weather never appears or connects to a provider until explicitly enabled. */
+    var weatherEnabled: Boolean
+        get() = sp.getBoolean("weather_enabled", false)
+        set(v) = sp.edit().putBoolean("weather_enabled", v).apply()
+
+    /** Manually entered city; we never request device location or guess from its IP. */
+    var weatherCity: String
+        get() = sp.getString("weather_city", "")!!
+        set(v) = sp.edit().putString("weather_city", v.take(80)).apply()
+
     /** [CLOCK_CORNER] (small, top right), [CLOCK_LARGE] (date and a large clock top left, as before v1.9) or [CLOCK_OFF]. */
     var clockStyle: String
         get() = sp.getString("clock_style", CLOCK_CORNER)!!
