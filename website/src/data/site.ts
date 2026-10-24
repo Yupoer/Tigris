@@ -6,8 +6,9 @@
      alias for Invoke-WebRequest, so the download uses `curl.exe`. Variable
      assignments use `$name = "value"` and are expanded by PowerShell itself.
 
-   Neither variant needs a shell variable to run: the package name is always
-   written out in full, so a partially selected line still works. */
+   The installer snippets do use a local APK filename variable because versioned
+   releases change the filename with each tag. They always spell out the app's
+   package name; selected snippets must be copied as complete blocks. */
 
 export const brand = {
   name: "TIGRIS",
