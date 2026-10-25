@@ -97,7 +97,7 @@ object Shelf {
         return (0 until list.length()).map { list.getJSONObject(it) }.map { v ->
             Item(
                 v.optString("title"),
-                "${v.getJSONObject("owner").optString("name")} · ${count(v.getJSONObject("stat").optLong("viewI18n.text(R.string.i18n_shelf_003),
+                I18n.text(R.string.i18n_shelf_003, v.getJSONObject("owner").optString("name"), count(v.getJSONObject("stat").optLong("view"))),
                 v.optString("pic").replace("http://", "https://") + "@1280w_720h_1c.jpg",
             )
         }
@@ -112,7 +112,7 @@ object Shelf {
             .map { r ->
                 Item(
                     r.optString("rn"),
-                    "${r.optString("nn")} · ${r.optString("c2name")} · ${count(r.optLong("olI18n.text(R.string.i18n_shelf_004),
+                    I18n.text(R.string.i18n_shelf_004, r.optString("nn"), r.optString("c2name"), count(r.optLong("ol"))),
                     // "/dy4" is the 1280×720 JPEG rendition of the AVIF cover.
                     r.optString("rs16").substringBeforeLast('/') + "/dy4",
                 )
