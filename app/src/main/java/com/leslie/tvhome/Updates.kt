@@ -72,7 +72,7 @@ object Updates {
             }
             "${p.name}：$status"
         } catch (e: Exception) {
-            val status = "检查失败：${e.message ?: "网络不可用I18n.text(R.string.i18n_updates_007)
+            val status = I18n.text(R.string.i18n_updates_007, e.message ?: I18n.text(R.string.i18n_updates_028))
             prefs(c).edit().putString(p.pkg + ".status", status).putBoolean(p.pkg + ".available", false).apply()
             "${p.name}：$status"
         }

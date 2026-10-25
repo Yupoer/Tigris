@@ -6,7 +6,7 @@
     <string name="i18n_updates_004">Not installed · %1$s available</string>
     <string name="i18n_updates_005">%1$s · up to date (stable %2$s)</string>
     <string name="i18n_updates_006">New version %1$s available — open the update center</string>
-    <string name="i18n_updates_007" formatted="false">}, try again later</string>
+    <string name="i18n_updates_007">Check failed: %1$s, try again later</string>
     <string name="i18n_updates_008" formatted="false">Allow Tigris to install unknown apps first</string>
     <string name="i18n_updates_009" formatted="false">An install is already pending; check the software update notification and confirm</string>
     <string name="i18n_updates_010" formatted="false">Check for updates first</string>
@@ -27,4 +27,5 @@
     <string name="i18n_updates_025" formatted="false">Please confirm the update install</string>
     <string name="i18n_updates_026" formatted="false">Installed successfully</string>
     <string name="i18n_updates_027">Install incomplete: %1$s</string>
+    <string name="i18n_updates_028" formatted="false">Network unavailable</string>
 </resources>
