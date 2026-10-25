@@ -16,6 +16,10 @@ object I18n {
         appContext = context.applicationContext
     }
 
+    /** Resolve the active Android TV locale instead of caching a language choice. */
+    fun isChinese(): Boolean = checkNotNull(appContext) { "I18n.initialize() must run in App.onCreate()" }
+        .resources.configuration.locales[0].language.equals("zh", ignoreCase = true)
+
     fun text(resourceId: Int, vararg arguments: Any?): String {
         val resources = checkNotNull(appContext) { "I18n.initialize() must run in App.onCreate()" }.resources
         return if (arguments.isEmpty()) resources.getString(resourceId)

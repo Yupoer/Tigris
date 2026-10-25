@@ -119,10 +119,18 @@ object Shelf {
             }
     }
 
-    private fun count(n: Long) = when {
-        n >= 100_000_000 -> I18n.text(R.string.i18n_shelf_005).format(n / 100_000_000.0)
-        n >= 10_000 -> I18n.text(R.string.i18n_shelf_006).format(n / 10_000.0)
-        else -> n.toString()
+    private fun count(n: Long): String = if (I18n.isChinese()) {
+        when {
+            n >= 100_000_000 -> I18n.text(R.string.i18n_shelf_005, n / 100_000_000.0)
+            n >= 10_000 -> I18n.text(R.string.i18n_shelf_006, n / 10_000.0)
+            else -> n.toString()
+        }
+    } else {
+        when {
+            n >= 1_000_000 -> I18n.text(R.string.i18n_shelf_005, n / 1_000_000.0)
+            n >= 1_000 -> I18n.text(R.string.i18n_shelf_006, n / 1_000.0)
+            else -> n.toString()
+        }
     }
 
     private fun get(url: String): ByteArray {
