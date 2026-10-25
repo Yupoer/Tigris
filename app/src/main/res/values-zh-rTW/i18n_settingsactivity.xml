@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="i18n_settingsactivity_001" formatted="false">釋放記憶體時保留</string>
+    <string name="i18n_settingsactivity_002" formatted="false">隱藏的 App</string>
+    <string name="i18n_settingsactivity_003" formatted="false">主畫面設定</string>
+    <string name="i18n_settingsactivity_004" formatted="false">軟體</string>
+    <string name="i18n_settingsactivity_005" formatted="false">軟體更新與投放</string>
+    <string name="i18n_settingsactivity_006" formatted="false">檢查 Tigris 和 MiracastReceiver 的新版本，安裝投放組件或開啟自動更新。</string>
+    <string name="i18n_settingsactivity_007" formatted="false">開啟</string>
+    <string name="i18n_settingsactivity_008" formatted="false">外觀</string>
+    <string name="i18n_settingsactivity_009" formatted="false">時間格式</string>
+    <string name="i18n_settingsactivity_010" formatted="false">主畫面和控制中心裡的時間用 12 小時制（11:49 AM）還是 24 小時制（23:49）。</string>
+    <string name="i18n_settingsactivity_011" formatted="false">24 小時</string>
+    <string name="i18n_settingsactivity_012" formatted="false">12 小時</string>
+    <string name="i18n_settingsactivity_013" formatted="false">時鐘位置</string>
+    <string name="i18n_settingsactivity_014" formatted="false">右上角的小時鐘，或者左上角帶日期的大時鐘（之前的樣式），也可以不顯示。</string>
+    <string name="i18n_settingsactivity_015" formatted="false">左上角大時鐘</string>
+    <string name="i18n_settingsactivity_016" formatted="false">不顯示</string>
+    <string name="i18n_settingsactivity_017" formatted="false">右上角</string>
+    <string name="i18n_settingsactivity_018" formatted="false">設定頁背景</string>
+    <string name="i18n_settingsactivity_019" formatted="false">設定頁用上傳的背景圖，或者普通的深色背景。</string>
+    <string name="i18n_settingsactivity_020" formatted="false">圖片</string>
+    <string name="i18n_settingsactivity_021" formatted="false">普通</string>
+    <string name="i18n_settingsactivity_022" formatted="false">設定圖示</string>
+    <string name="i18n_settingsactivity_023" formatted="false">這個設定的圖示：自己上傳的圖片，或者內建的齒輪。</string>
+    <string name="i18n_settingsactivity_024" formatted="false">上傳的圖片</string>
+    <string name="i18n_settingsactivity_025" formatted="false">齒輪</string>
+    <string name="i18n_settingsactivity_026" formatted="false">上傳頭像</string>
+    <string name="i18n_settingsactivity_027" formatted="false">手機掃描QR 碼，在網頁的「頭像」中上傳照片，返回主畫面後顯示。</string>
+    <string name="i18n_settingsactivity_028" formatted="false">手機上傳</string>
+    <string name="i18n_settingsactivity_029" formatted="false">顯示右上角頭像</string>
+    <string name="i18n_settingsactivity_030" formatted="false">右上角的頭像，按它可以開啟主畫面設定。</string>
+    <string name="i18n_settingsactivity_031" formatted="false">聚焦動畫</string>
+    <string name="i18n_settingsactivity_032" formatted="false">tvOS：選取的 App 放大、跟著方向傾斜，表面有一道光。簡潔：只放大。</string>
+    <string name="i18n_settingsactivity_033" formatted="false">\n“自動”在配置較低的電視上用簡潔。</string>
+    <string name="i18n_settingsactivity_034" formatted="false">簡潔</string>
+    <string name="i18n_settingsactivity_035" formatted="false">控制中心樣式</string>
+    <string name="i18n_settingsactivity_036" formatted="false">玻璃：透出背後畫面的毛玻璃，選取的按鈕會照亮旁邊的按鈕。面板：之前的深色面板，更省性能。</string>
+    <string name="i18n_settingsactivity_037" formatted="false">\n“自動”在配置較低的電視上用面板。</string>
+    <string name="i18n_settingsactivity_038" formatted="false">玻璃</string>
+    <string name="i18n_settingsactivity_039" formatted="false">面板</string>
+    <string name="i18n_settingsactivity_040" formatted="false">開機動畫</string>
+    <string name="i18n_settingsactivity_041" formatted="false">開機動畫</string>
+    <string name="i18n_settingsactivity_042" formatted="false">開機後第一次顯示主畫面時播放，最後標誌放大進入主畫面。按任意鍵可以跳過。</string>
+    <string name="i18n_settingsactivity_043" formatted="false">\n預設播放內置開機影片，也可上傳自己的影片。</string>
+    <string name="i18n_settingsactivity_044" formatted="false">開機時</string>
+    <string name="i18n_settingsactivity_045" formatted="false">開機和喚醒時</string>
+    <string name="i18n_settingsactivity_046" formatted="false">關</string>
+    <string name="i18n_settingsactivity_047" formatted="false">動畫內容</string>
+    <string name="i18n_settingsactivity_048" formatted="false">上傳的影片：比如 Apple TV 的開機動畫，結尾的標誌放大進入主畫面。Tigris 字樣：Tigris 字樣淡入後放大。</string>
+    <string name="i18n_settingsactivity_049" formatted="false">\n沒有上傳影片時，影片模式使用內置動畫。</string>
+    <string name="i18n_settingsactivity_050" formatted="false">Tigris 字樣</string>
+    <string name="i18n_settingsactivity_051" formatted="false">上傳的影片</string>
+    <string name="i18n_settingsactivity_052" formatted="false">內置影片</string>
+    <string name="i18n_settingsactivity_053" formatted="false">喚醒後等待</string>
+    <string name="i18n_settingsactivity_054" formatted="false">從待機喚醒時，先黑屏這麼久再播放動畫。不少電視（尤其是 OLED）在系統亮屏後過幾秒畫面才真正亮起；看不到動畫開頭就調長，黑屏太久就調短。</string>
+    <string name="i18n_settingsactivity_055" formatted="false">不等待</string>
+    <string name="i18n_settingsactivity_056">%1$s 秒</string>
+    <string name="i18n_settingsactivity_057" formatted="false">開機動畫聲音</string>
+    <string name="i18n_settingsactivity_058" formatted="false">播放動畫影片里的聲音。</string>
+    <string name="i18n_settingsactivity_059" formatted="false">預覽開機動畫</string>
+    <string name="i18n_settingsactivity_060" formatted="false">現在回到主畫面播放一次。</string>
+    <string name="i18n_settingsactivity_061" formatted="false">背景與螢幕保護程式</string>
+    <string name="i18n_settingsactivity_062" formatted="false">背景</string>
+    <string name="i18n_settingsactivity_063" formatted="false">主畫面的背景：主題、壁紙來源或者自己的照片。</string>
+    <string name="i18n_settingsactivity_064">%1$s（自動更換）</string>
+    <string name="i18n_settingsactivity_065" formatted="false">照片更換頻率</string>
+    <string name="i18n_settingsactivity_066" formatted="false">自動更換的背景多久換一張。</string>
+    <string name="i18n_settingsactivity_067" formatted="false">立即換一張</string>
+    <string name="i18n_settingsactivity_068" formatted="false">現在從壁紙來源取一張新照片。照片要顯示時才下載，舊的過幾天自動清理。</string>
+    <string name="i18n_settingsactivity_069">已有 %1$s 張</string>
+    <string name="i18n_settingsactivity_070" formatted="false">正在下載…</string>
+    <string name="i18n_settingsactivity_071">已有 %1$s 張</string>
+    <string name="i18n_settingsactivity_072" formatted="false">電視空閒時顯示螢幕保護程式</string>
+    <string name="i18n_settingsactivity_073" formatted="false">電視空閒一段時間後全屏輪播照片或航拍影片，代替電視內建的螢幕保護程式。</string>
+    <string name="i18n_settingsactivity_074" formatted="false">正在設定…</string>
+    <string name="i18n_settingsactivity_075" formatted="false">需要先授權本機偵錯</string>
+    <string name="i18n_settingsactivity_076" formatted="false">螢幕保護程式內容</string>
+    <string name="i18n_settingsactivity_077" formatted="false">螢幕保護程式里放背景照片，還是 Apple TV 的航拍影片。</string>
+    <string name="i18n_settingsactivity_078" formatted="false">Apple TV 航拍影片</string>
+    <string name="i18n_settingsactivity_079" formatted="false">照片</string>
+    <string name="i18n_settingsactivity_080" formatted="false">空閒多久顯示螢幕保護程式</string>
+    <string name="i18n_settingsactivity_081" formatted="false">多久沒有操作後顯示螢幕保護程式。</string>
+    <string name="i18n_settingsactivity_082" formatted="false">正在設定…</string>
+    <string name="i18n_settingsactivity_083" formatted="false">需要先授權本機偵錯</string>
+    <string name="i18n_settingsactivity_084" formatted="false">螢幕保護程式每張照片停留</string>
+    <string name="i18n_settingsactivity_085" formatted="false">螢幕保護程式里每張照片顯示多久。</string>
+    <string name="i18n_settingsactivity_086">%1$s 秒</string>
+    <string name="i18n_settingsactivity_087" formatted="false">記憶體與電源</string>
+    <string name="i18n_settingsactivity_088" formatted="false">待機時自動釋放記憶體</string>
+    <string name="i18n_settingsactivity_089" formatted="false">待機時僅清理快取進程，不強制停止App；無法確認前台時跳過。</string>
+    <string name="i18n_settingsactivity_090" formatted="false">定時釋放記憶體</string>
+    <string name="i18n_settingsactivity_091" formatted="false">定時清理快取進程，不強制停止App。新安裝預設關閉。</string>
+    <string name="i18n_settingsactivity_092" formatted="false">關閉</string>
+    <string name="i18n_settingsactivity_093">每 %1$s 小時</string>
+    <string name="i18n_settingsactivity_094" formatted="false">立即釋放記憶體</string>
+    <string name="i18n_settingsactivity_095" formatted="false">現在關掉後台的 App。</string>
+    <string name="i18n_settingsactivity_096">可用 %1$s MB</string>
+    <string name="i18n_settingsactivity_097" formatted="false">正在釋放…</string>
+    <string name="i18n_settingsactivity_098" formatted="false">釋放記憶體時保留的 App</string>
+    <string name="i18n_settingsactivity_099" formatted="false">釋放記憶體時不會被關掉的 App，比如投放和音樂。</string>
+    <string name="i18n_settingsactivity_100">%1$s 個</string>
+    <string name="i18n_settingsactivity_101" formatted="false">按遙控器電源鍵時</string>
+    <string name="i18n_settingsactivity_102" formatted="false">待機：和平時一樣。徹底關機：省電，但開機要等更久。</string>
+    <string name="i18n_settingsactivity_103" formatted="false">徹底關機</string>
+    <string name="i18n_settingsactivity_104" formatted="false">待機</string>
+    <string name="i18n_settingsactivity_105" formatted="false">需要先授權本機偵錯才會生效</string>
+    <string name="i18n_settingsactivity_106" formatted="false">最近開啟的 App 自動置頂</string>
+    <string name="i18n_settingsactivity_107" formatted="false">開啟時，成功開啟的 App或檔案夾會移動到最前面；關閉後保持當前排列，只通過長按「編輯主畫面」手動調整，重新啓動App也不會打亂順序。</string>
+    <string name="i18n_settingsactivity_108" formatted="false">隱藏的 App</string>
+    <string name="i18n_settingsactivity_109" formatted="false">不在主畫面上顯示的 App。</string>
+    <string name="i18n_settingsactivity_110">%1$s 個</string>
+    <string name="i18n_settingsactivity_111" formatted="false">已刪除的預裝 App</string>
+    <string name="i18n_settingsactivity_112" formatted="false">從長按菜單里刪除的預裝 App，可以在這裡恢復。</string>
+    <string name="i18n_settingsactivity_113">%1$s 個</string>
+    <string name="i18n_settingsactivity_114" formatted="false">系統</string>
+    <string name="i18n_settingsactivity_115" formatted="false">本機偵錯授權</string>
+    <string name="i18n_settingsactivity_116" formatted="false">允許主畫面通過本機偵錯完成關機、釋放記憶體等系統操作。授權時在彈窗中選擇“始終允許”。</string>
+    <string name="i18n_settingsactivity_117" formatted="false">已授權</string>
+    <string name="i18n_settingsactivity_118" formatted="false">未授權，按確認鍵授權</string>
+    <string name="i18n_settingsactivity_119" formatted="false">請在彈窗中選擇“始終允許”</string>
+    <string name="i18n_settingsactivity_120" formatted="false">已授權</string>
+    <string name="i18n_settingsactivity_121" formatted="false">未授權，按確認鍵重試</string>
+    <string name="i18n_settingsactivity_122" formatted="false">主畫面守護</string>
+    <string name="i18n_settingsactivity_123" formatted="false">按Home 鍵回到原廠主畫面時，自動回到這裡。</string>
+    <string name="i18n_settingsactivity_124" formatted="false">關</string>
+    <string name="i18n_settingsactivity_125" formatted="false">開</string>
+    <string name="i18n_settingsactivity_126" formatted="false">開（未運行）</string>
+    <string name="i18n_settingsactivity_127" formatted="false">正在設定…</string>
+    <string name="i18n_settingsactivity_128" formatted="false">需要先授權本機偵錯</string>
+    <string name="i18n_settingsactivity_129" formatted="false">開</string>
+    <string name="i18n_settingsactivity_130" formatted="false">關</string>
+    <string name="i18n_settingsactivity_131" formatted="false">按Home 鍵回到原廠主畫面時會自動回到這裡</string>
+    <string name="i18n_settingsactivity_132" formatted="false">保持 ADB 偵錯開啟</string>
+    <string name="i18n_settingsactivity_133" formatted="false">防止系統自動關掉 ADB 偵錯。</string>
+    <string name="i18n_settingsactivity_134" formatted="false">正在設定…</string>
+    <string name="i18n_settingsactivity_135" formatted="false">需要先授權本機偵錯</string>
+    <string name="i18n_settingsactivity_136" formatted="false">系統設定</string>
+    <string name="i18n_settingsactivity_137" formatted="false">開啟電視內建的設定。</string>
+    <string name="i18n_settingsactivity_138" formatted="false">關於</string>
+    <string name="i18n_settingsactivity_139" formatted="false">Tigris 主畫面，仿 tvOS 的 Android TV 主畫面。</string>
+    <string name="i18n_settingsactivity_140" formatted="false">版本 </string>
+    <string name="i18n_settingsactivity_141" formatted="false">選取的 App 在釋放記憶體時不會被關掉。</string>
+    <string name="i18n_settingsactivity_142" formatted="false">選取的 App 不會出現在主畫面上。</string>
+    <string name="i18n_settingsactivity_143" formatted="false">已刪除的預裝 App</string>
+    <string name="i18n_settingsactivity_144" formatted="false">選擇一個 App，從系統分區重新安裝它。</string>
+    <string name="i18n_settingsactivity_145" formatted="false">沒有已刪除的 App</string>
+    <string name="i18n_settingsactivity_146" formatted="false">恢復</string>
+    <string name="i18n_settingsactivity_147" formatted="false">正在恢復…</string>
+    <string name="i18n_settingsactivity_148" formatted="false">已恢復</string>
+    <string name="i18n_settingsactivity_149" formatted="false">恢復失敗</string>
+    <string name="i18n_settingsactivity_150" formatted="false">正在</string>
+    <string name="i18n_settingsactivity_151" formatted="false">請在</string>
+    <string name="i18n_settingsactivity_152" formatted="false">開</string>
+    <string name="i18n_settingsactivity_153" formatted="false">關</string>
+    <string name="i18n_settingsactivity_154" formatted="false">自動（…）</string>
+    <string name="i18n_settingsactivity_155">自動（%1$s）</string>
+    <string name="i18n_settingsactivity_156" formatted="false">每天</string>
+    <string name="i18n_settingsactivity_157">%1$s 小時</string>
+    <string name="i18n_settingsactivity_158">%1$s 分鐘</string>
+</resources>

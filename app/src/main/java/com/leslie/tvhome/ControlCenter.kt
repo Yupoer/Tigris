@@ -1,6 +1,7 @@
 package com.leslie.tvhome
 
 import android.content.Intent
+import android.content.ActivityNotFoundException
 import android.graphics.Bitmap
 import android.graphics.BitmapShader
 import android.graphics.Canvas
@@ -23,6 +24,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import com.leslie.tvhome.tv.Input
 import com.leslie.tvhome.tv.Level
 import com.leslie.tvhome.tv.TvControls
@@ -44,7 +46,7 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
     private val prefs = Prefs(ctx)
     private val gap = ctx.dp(12)
     private val cell = ctx.dp(47)
-    private val width = cell * 4 + gap * 3
+    private val width = cell * 5 + gap * 4
     private var glassStyle = prefs.ccGlass(ctx)
     private val surfaces = ArrayList<GlassSurface>()
     private var destroyed = false
@@ -205,13 +207,29 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
         fun utility(label: String, icon: Int, action: () -> Unit): GlassButton =
             GlassButton(label, icon, Shape.ROUND, action = action).also {
                 utilities.addView(it, LinearLayout.LayoutParams(cell, cell).apply {
-                    if (utilities.childCount > 0) marginStart = (this@ControlCenter.width - cell * 4) / 3
+                    if (utilities.childCount > 0) marginStart = gap
                 })
             }
         memButton = utility(I18n.text(R.string.i18n_controlcenter_006), R.drawable.ic_memory) { cleanNow() }
         utility(I18n.text(R.string.i18n_controlcenter_007), R.drawable.ic_photo) {
             close()
             ctx.openFrame()
+        }
+        utility(I18n.text(R.string.airplay_receiver), R.drawable.ic_airplay) {
+            val launch = ctx.packageManager.getLeanbackLaunchIntentForPackage(AIRPLAY_PACKAGE)
+                ?: ctx.packageManager.getLaunchIntentForPackage(AIRPLAY_PACKAGE)
+            if (launch == null) {
+                Toast.makeText(ctx, I18n.text(R.string.airplay_not_installed), Toast.LENGTH_SHORT).show()
+            } else {
+                try {
+                    close()
+                    ctx.startActivity(launch)
+                } catch (_: ActivityNotFoundException) {
+                    Toast.makeText(ctx, I18n.text(R.string.airplay_not_installed), Toast.LENGTH_SHORT).show()
+                } catch (_: SecurityException) {
+                    Toast.makeText(ctx, I18n.text(R.string.airplay_not_installed), Toast.LENGTH_SHORT).show()
+                }
+            }
         }
         utility(I18n.text(R.string.i18n_controlcenter_008), R.drawable.ic_restart) {
             confirm(I18n.text(R.string.i18n_controlcenter_009), I18n.text(R.string.i18n_controlcenter_010)) { Cleaner.reboot(ctx) }
@@ -245,6 +263,10 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
         // Report cleanup without expanding the button and moving every control below it.
         status.setShadowLayer(ctx.dp(3).toFloat(), 0f, 0f, Color.BLACK)
         applyStyle()
+    }
+
+    private companion object {
+        const val AIRPLAY_PACKAGE = "io.github.jqssun.airplay.cleanhome"
     }
 
     /** Picks up a change of [Prefs.ccStyle] made in settings. */

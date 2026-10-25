@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="weather_settings">天氣卡片</string>
+  <string name="weather_settings_help">可選的 Open-Meteo 天氣卡片，預設關閉。</string>
+  <string name="weather_city_settings">天氣城市</string>
+  <string name="weather_city_help">搜索並選擇城市，不自動定位。</string>
+  <string name="weather_choose_city">選擇城市</string>
+  <string name="weather_search_city">輸入城市名稱搜索</string>
+  <string name="weather_city_unknown">未選擇</string>
+  <string name="weather_city_none">沒有找到匹配的城市</string>
+  <string name="weather_city_error">城市搜索失敗，請檢查網路。</string>
+  <string name="weather_weather_pending">請先在設定中選擇城市</string>
+  <string name="weather_weather_unavailable">天氣暫不可用</string>
+  <string name="weather_card_text">%1$s  %2$s · %3$s°%7$s · %6$s\n最高 %4$s°%7$s · 最低 %5$s°%7$s</string>
+  <string name="weather_clear">晴</string><string name="weather_partly">多雲</string>
+  <string name="weather_cloud">陰</string><string name="weather_fog">有霧</string>
+  <string name="weather_rain">雨</string><string name="weather_snow">雪</string>
+  <string name="weather_storm">雷雨</string>
+  <string name="weather_unit_settings">溫度單位</string>
+  <string name="weather_unit_help">攝氏度或華氏度。</string>
+</resources>

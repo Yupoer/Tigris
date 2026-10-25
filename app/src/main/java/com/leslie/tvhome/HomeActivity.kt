@@ -91,7 +91,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private val io = Executors.newSingleThreadExecutor()
     private val sheets = ArrayList<Sheet>()
 
-    private val cols = 5
+    private val cols = 6
     private var tileW = 0
     private var tileH = 0
     private var rowPitch = 0

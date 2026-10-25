@@ -1,0 +1,5 @@
+<resources>
+    <string name="install_home_check_title">安裝與 Home 檢查</string>
+    <string name="install_home_check_help">安裝成功不代表主頁接管成功。請從其他App按遙控器Home 鍵測試。</string>
+    <string name="install_home_check_status">預設 HOME 解析指向 Tigris：%1$s\n主畫面守護服務已連線：%2$s\n系統設定寫入權限：%3$s\n\n以上是配置檢查，不代表Home 鍵已經通過。開啟其他App，按遙控器Home 鍵。如果仍回原廠主畫面，可開啟下方主畫面守護，可能需要 ADB（Android 偵錯橋）授權。請保留原廠主畫面。\n\n實體Home 鍵、待機喚醒、重啓：本頁面尚未驗證，請分別測試。僅通過 USB 隨身碟安裝不會自動獲得系統權限。</string>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="i18n_updates_001" formatted="false">Tigris 主畫面</string>
+    <string name="i18n_updates_002" formatted="false">MiracastReceiver 投放</string>
+    <string name="i18n_updates_003" formatted="false">發佈中沒有適用安裝包</string>
+    <string name="i18n_updates_004">未安裝 · 可安裝 %1$s</string>
+    <string name="i18n_updates_005">%1$s · 無需更新（正式版 %2$s）</string>
+    <string name="i18n_updates_006">有新版本 %1$s，開啟更新中心查看</string>
+    <string name="i18n_updates_007">檢查失敗：%1$s，稍後重試</string>
+    <string name="i18n_updates_008" formatted="false">請先允許 Tigris 安裝未知App</string>
+    <string name="i18n_updates_009" formatted="false">已有安裝等待完成，請查看軟體更新通知並確認</string>
+    <string name="i18n_updates_010" formatted="false">請先檢查更新</string>
+    <string name="i18n_updates_011" formatted="false">安裝包大小異常</string>
+    <string name="i18n_updates_012" formatted="false">下載大小超出發佈信息</string>
+    <string name="i18n_updates_013" formatted="false">下載不完整</string>
+    <string name="i18n_updates_014" formatted="false">安裝包校驗失敗</string>
+    <string name="i18n_updates_015" formatted="false">無法讀取安裝包</string>
+    <string name="i18n_updates_016" formatted="false">安裝包身份不符</string>
+    <string name="i18n_updates_017" formatted="false">電視系統版本不支持</string>
+    <string name="i18n_updates_018" formatted="false">沒有更高版本，無需安裝</string>
+    <string name="i18n_updates_019" formatted="false">缺少安裝包簽名</string>
+    <string name="i18n_updates_020" formatted="false">簽名不同，無法保留配置升級；未解除安裝舊版</string>
+    <string name="i18n_updates_021" formatted="false">不受信任的投放簽名</string>
+    <string name="i18n_updates_022" formatted="false">安裝已提交，可能需要在電視上確認</string>
+    <string name="i18n_updates_023" formatted="false">軟體更新</string>
+    <string name="i18n_updates_024" formatted="false">更新失敗</string>
+    <string name="i18n_updates_025" formatted="false">請確認安裝更新</string>
+    <string name="i18n_updates_026" formatted="false">安裝成功</string>
+    <string name="i18n_updates_027">安裝未完成：%1$s</string>
+    <string name="i18n_updates_028" formatted="false">網路不可用</string>
+</resources>

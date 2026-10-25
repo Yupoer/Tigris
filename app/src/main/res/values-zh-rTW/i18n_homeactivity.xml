@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="i18n_homeactivity_001" formatted="false">網路設定</string>
+    <string name="i18n_homeactivity_002" formatted="false">控制中心</string>
+    <string name="i18n_homeactivity_003" formatted="false">主畫面設定</string>
+    <string name="i18n_homeactivity_004" formatted="false">M月d日EEEE</string>
+    <string name="i18n_homeactivity_005">無法開啟 %1$s</string>
+    <string name="i18n_homeactivity_006" formatted="false">編輯主畫面</string>
+    <string name="i18n_homeactivity_007" formatted="false">從主畫面移除</string>
+    <string name="i18n_homeactivity_008" formatted="false">取消</string>
+    <string name="i18n_homeactivity_009" formatted="false">編輯主畫面</string>
+    <string name="i18n_homeactivity_010" formatted="false">移入檔案夾</string>
+    <string name="i18n_homeactivity_011" formatted="false">隱藏</string>
+    <string name="i18n_homeactivity_012" formatted="false">取消</string>
+    <string name="i18n_homeactivity_013" formatted="false">App信息</string>
+    <string name="i18n_homeactivity_014" formatted="false">刪除 App</string>
+    <string name="i18n_homeactivity_015" formatted="false">取消</string>
+    <string name="i18n_homeactivity_016" formatted="false">檔案夾名稱</string>
+    <string name="i18n_homeactivity_017" formatted="false">保存</string>
+    <string name="i18n_homeactivity_018" formatted="false">取消</string>
+    <string name="i18n_homeactivity_019" formatted="false">請輸入名稱</string>
+    <string name="i18n_homeactivity_020" formatted="false">移入檔案夾</string>
+    <string name="i18n_homeactivity_021" formatted="false">新建檔案夾…</string>
+    <string name="i18n_homeactivity_022" formatted="false">新檔案夾</string>
+    <string name="i18n_homeactivity_023" formatted="false">取消</string>
+    <string name="i18n_homeactivity_024">無法開啟 %1$s</string>
+    <string name="i18n_homeactivity_025" formatted="false">管理</string>
+    <string name="i18n_homeactivity_026" formatted="false">返回</string>
+    <string name="i18n_homeactivity_027" formatted="false">檔案夾為空，可長按主畫面App移入。</string>
+    <string name="i18n_homeactivity_028" formatted="false">重命名</string>
+    <string name="i18n_homeactivity_029" formatted="false">移出App</string>
+    <string name="i18n_homeactivity_030" formatted="false">編輯主畫面</string>
+    <string name="i18n_homeactivity_031" formatted="false">解散檔案夾</string>
+    <string name="i18n_homeactivity_032" formatted="false">移回主畫面</string>
+    <string name="i18n_homeactivity_033" formatted="false">取消</string>
+    <string name="i18n_homeactivity_034">解散 %1$s？</string>
+    <string name="i18n_homeactivity_035" formatted="false">App 圖示將回到主畫面，不會解除安裝App。</string>
+    <string name="i18n_homeactivity_036" formatted="false">解散</string>
+    <string name="i18n_homeactivity_037" formatted="false">取消</string>
+    <string name="i18n_homeactivity_038" formatted="false">取消</string>
+    <string name="i18n_homeactivity_039" formatted="false">需要先授權本機偵錯</string>
+    <string name="i18n_homeactivity_040" formatted="false">刪除電視預裝的 App 要用到本機偵錯。點“開始”後，電視會彈出“允許偵錯嗎？”，請勾選“始終允許”，再點“允許”。</string>
+    <string name="i18n_homeactivity_041" formatted="false">開始</string>
+    <string name="i18n_homeactivity_042" formatted="false">取消</string>
+    <string name="i18n_homeactivity_043" formatted="false">這是電視預裝的 App。刪除後它不會再出現在主畫面上，也不會在後台運行。需要時可以在“主畫面設定 → 已刪除的預裝 App”里恢復。</string>
+    <string name="i18n_homeactivity_044" formatted="false">這是一個主畫面 App，可以在本主畫面出問題時頂上。刪除後，萬一本主畫面無法啓動，電視就沒有備用主畫面了。App 和它的資料都會被刪除。</string>
+    <string name="i18n_homeactivity_045" formatted="false">App 和它的資料都會被刪除。</string>
+    <string name="i18n_homeactivity_046">刪除“%1$s”？</string>
+    <string name="i18n_homeactivity_047" formatted="false">刪除</string>
+    <string name="i18n_homeactivity_048" formatted="false">取消</string>
+    <string name="i18n_homeactivity_049" formatted="false">用方向鍵移動，按確認鍵完成</string>
+    <string name="i18n_homeactivity_050" formatted="false">開啟關機和釋放記憶體</string>
+    <string name="i18n_homeactivity_051" formatted="false">需要允許本機偵錯一次。點“開始”後，電視會彈出“允許偵錯嗎？”，請勾選“始終允許”，再點“允許”。</string>
+    <string name="i18n_homeactivity_052" formatted="false">開始</string>
+    <string name="i18n_homeactivity_053" formatted="false">以後再說</string>
+    <string name="i18n_homeactivity_054" formatted="false">請在彈出的窗口中勾選“始終允許”並點“允許”</string>
+    <string name="i18n_homeactivity_055" formatted="false">已開啟，關機和釋放記憶體可以用了</string>
+    <string name="i18n_homeactivity_056" formatted="false">沒有授權成功，可以在主畫面設定中重試</string>
+    <string name="i18n_homeactivity_057">沒有刪除成功：%1$s</string>
+    <string name="i18n_homeactivity_058" formatted="false">本機偵錯不可用</string>
+</resources>
