@@ -611,10 +611,10 @@ class HomeActivity : Activity(), TileAdapter.Listener {
 
     private fun updateClock() {
         val now = Date()
-        clockText.text = SimpleDateFormat(if (prefs.clock24) "HH:mm" else "h:mm a", Locale.US).format(now)
-        bigDate.text = SimpleDateFormat(I18n.text(R.string.i18n_homeactivity_004), Locale.CHINA).format(now)
+        clockText.text = SimpleDateFormat(if (prefs.clock24) "HH:mm" else "h:mm a", Locale.getDefault()).format(now)
+        bigDate.text = SimpleDateFormat(I18n.text(R.string.i18n_homeactivity_004), Locale.getDefault()).format(now)
         // The large clock leaves out AM/PM, as tvOS did; at that size it reads as the time of day.
-        bigTime.text = SimpleDateFormat(if (prefs.clock24) "HH:mm" else "h:mm", Locale.US).format(now)
+        bigTime.text = SimpleDateFormat(if (prefs.clock24) "HH:mm" else "h:mm", Locale.getDefault()).format(now)
     }
 
     private fun applyClockStyle() {
@@ -879,7 +879,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
                         if (ok) {
                             if (system) prefs.removed = prefs.removed + app.pkg
                             reload()
-                        } else Toast.makeText(this, "没有删除成功：${out?.trim()?.take(80) ?: "本机调试不可用"}", Toast.LENGTH_LONG).show()
+                        } else Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_057, out?.trim()?.take(80) ?: I18n.text(R.string.i18n_homeactivity_058)), Toast.LENGTH_LONG).show()
                     }
                 }
             }
