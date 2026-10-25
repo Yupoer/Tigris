@@ -31,3 +31,11 @@ jobs:
           npm install -g @webos-tools/cli
           ares-package webos/app
           test -n "$(find . -maxdepth 1 -name 'org.tigris.webos_*_all.ipk' -print -quit)"
+      - name: Upload developer-preview IPK (not an official Release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: tigris-webos-source-preview
+          path: org.tigris.webos_*_all.ipk
+          retention-days: 7
+          if-no-files-found: error
+
