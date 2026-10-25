@@ -22,7 +22,7 @@ for both languages and no language preference, onboarding step, or new backgroun
    `<string name="total_items">%1$s items</string>` and
    `<string name="total_items">%1$s 个项目</string>`, then call
    `I18n.text(R.string.total_items, count)`.
-4. Use `Locale.getDefault()` when formatting dates and times.
+4. Use the current Android locale when formatting dates and times. Compact counts use 万/亿 for Chinese, and K/M for English.
 5. Do not cache translated text in long-lived static values if it must
    immediately update after a system language change.
 6. Never translate technical identifiers: package names, intents, ADB commands,

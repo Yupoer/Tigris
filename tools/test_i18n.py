@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / "app/src/main/res"
 JAVA = ROOT / "app/src/main/java"
-SLOTS = re.compile(r"%\d+\$[sdf]")
+SLOTS = re.compile(r"%\d+\$(?:[-+# 0,(]*\d*(?:\.\d+)?)[sdf]")
 REFERENCE = re.compile(r"R\.string\.(i18n_[A-Za-z0-9_]+)")
 
 def catalogue(folder: str) -> dict[str, str]:
