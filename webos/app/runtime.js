@@ -15,7 +15,10 @@ w.TigrisWeather.load(city).then(function(d){if(!enabled)return;el("weather-glyph
 el("weather-range").textContent=(d.high===null?"":"H "+d.high+"°  ")+(d.low===null?"":"L "+d.low+"°")}).catch(function(){el("weather-value").textContent=zh?"天气暂不可用":"Weather unavailable"})}
 el("weather-switch").onchange=function(){enabled=this.checked;save("weather-enabled",enabled);showWeather()};
 el("city-search").onclick=function(){var box=el("results");box.textContent="…";w.TigrisWeather.search(el("city").value).then(function(cities){box.textContent="";cities.forEach(function(c){var b=document.createElement("button");b.textContent=c.name+" · "+c.detail;b.onclick=function(){city={name:c.name,lat:c.lat,lon:c.lon};save("weather-city",city);el("city").value=c.name;box.textContent="✓ "+c.name;showWeather()};box.appendChild(b)});if(!cities.length)box.textContent=zh?"找不到城市":"No cities found"}).catch(function(){box.textContent="Search unavailable"})};
-el("root-check").onclick=function(){w.TigrisRoot.inspect().then(function(r){el("home-status").textContent=r.available?(zh?"已检测到 Root；尚未安装高级 Home 服务":"Root detected; advanced Home service not installed"):(zh?"未检测到 Root 权限":"Root not detected")})};
+el("root-check").onclick=function(){w.TigrisRoot.inspect().then(function(r){
+  el("home-status").textContent=r.available?(zh?"已检测到 Root；Home 服务尚未安装":"Root detected; Home service not installed"):(zh?"未检测到 Root 权限":"Root not detected");
+  if(r.available){w.TigrisRoot.listApps().then(function(a){if(a.length)draw(a)},function(){});}
+})};
 function draw(apps){var dock=el("dock");dock.textContent="";apps.slice(0,8).forEach(function(a){var b=document.createElement("button");b.className="tile";b.title=a.title;
 if(/^file:\/\//.test(a.icon||"")){var img=document.createElement("img");img.src=a.icon;img.alt="";img.onerror=function(){img.style.display="none"};b.appendChild(img)}
 var label=document.createElement("small");label.textContent=a.title;b.appendChild(label);b.onclick=function(){el("apps-message").textContent=zh?"正在启动…":"Launching…";w.TigrisCore.launch(a.id).then(function(){el("apps-message").textContent=""},function(){el("apps-message").textContent=zh?"启动失败":"Launch failed"})};dock.appendChild(b)});if(!dock.children.length)el("apps-message").textContent=zh?"暂时无法读取应用列表":"App list unavailable";else dock.children[0].focus()}

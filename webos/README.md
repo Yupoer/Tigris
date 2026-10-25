@@ -5,7 +5,7 @@
 ## Two independent capability modules
 
 - `webos/app/platform/no-root.js`: default LG Developer Mode app, Luna app/HDMI launch, and read-only capability status. No Root, no privileged system replacement.
-- `webos/app/platform/root.js`: on-demand inspection of **existing** Homebrew root access only. No rooting, root exploit, mutation or persistent Home service.
+- `webos/app/platform/root.js`: on-demand inspection of **existing** Homebrew root access, plus an opt-in read-only full app inventory via a fixed Luna shell command. No rooting, root exploit, mutation or persistent Home service.
 - `webos/app/platform/core.js`: common app/HDMI launch and Luna IPC.
 - `webos/app/weather.js`: optional Open-Meteo search, weather refresh and cache.
 - `webos/app/runtime.js`: tvOS-inspired lightweight dock, remote keys and settings.
