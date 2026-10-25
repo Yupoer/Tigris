@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="i18n_shelf_001" formatted="false">Bilibili · Trending</string>
+    <string name="i18n_shelf_002" formatted="false">Douyu · Live now</string>
+    <string name="i18n_shelf_003" formatted="false">))} views</string>
+    <string name="i18n_shelf_004" formatted="false">))} hot</string>
+    <string name="i18n_shelf_005" formatted="false">%.1f×100M</string>
+    <string name="i18n_shelf_006" formatted="false">%.1f×10K</string>
+</resources>
