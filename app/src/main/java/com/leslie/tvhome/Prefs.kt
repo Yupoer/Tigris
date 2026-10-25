@@ -140,6 +140,10 @@ class Prefs(ctx: Context) {
         get() = sp.getBoolean("weather_enabled", false)
         set(v) = sp.edit().putBoolean("weather_enabled", v).apply()
 
+    var weatherFahrenheit: Boolean
+        get() = sp.getBoolean("weather_fahrenheit", false)
+        set(v) = sp.edit().putBoolean("weather_fahrenheit", v).apply()
+
     /** Chosen by the user via Open-Meteo geocoding, never inferred from IP. */
     var weatherCity: String
         get() = sp.getString("weather_city", "")!!

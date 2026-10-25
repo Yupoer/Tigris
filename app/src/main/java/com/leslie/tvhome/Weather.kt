@@ -121,7 +121,13 @@ object Weather {
         else -> R.string.weather_cloud
     })
 
-    fun format(data: Reading) = I18n.text(R.string.weather_card_text, glyph(data.code),
-        data.city, data.temperature.toString(), data.high?.toString() ?: "—",
-        data.low?.toString() ?: "—", label(data.code))
+    fun format(data: Reading, fahrenheit: Boolean): String {
+        fun value(celsius: Int?): String {
+            val n = celsius ?: return "—"
+            return (if (fahrenheit) (n * 9.0 / 5.0 + 32.0).roundToInt() else n).toString()
+        }
+        return I18n.text(R.string.weather_card_text, glyph(data.code), data.city,
+            value(data.temperature), value(data.high), value(data.low), label(data.code),
+            if (fahrenheit) "F" else "C")
+    }
 }

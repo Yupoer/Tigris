@@ -238,6 +238,10 @@ class SettingsActivity : Activity() {
         section(I18n.text(R.string.weather_settings))
         row(I18n.text(R.string.weather_settings), I18n.text(R.string.weather_settings_help),
             { onOff(prefs.weatherEnabled) }) { prefs.weatherEnabled = !prefs.weatherEnabled }
+        row(I18n.text(R.string.weather_unit_settings), I18n.text(R.string.weather_unit_help),
+            { if (prefs.weatherFahrenheit) "°F" else "°C" }) {
+            prefs.weatherFahrenheit = !prefs.weatherFahrenheit
+        }
         row(I18n.text(R.string.weather_city_settings), I18n.text(R.string.weather_city_help),
             { prefs.weatherCity.ifBlank { I18n.text(R.string.weather_city_unknown) } }, chevron = true) { value ->
             selectWeatherCity { city ->

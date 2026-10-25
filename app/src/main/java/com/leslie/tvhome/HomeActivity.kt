@@ -455,7 +455,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             return
         }
         val city = Weather.City(name, prefs.weatherLatitude, prefs.weatherLongitude)
-        Weather.cached(this, city)?.let { weatherCard.text = Weather.format(it) }
+        Weather.cached(this, city)?.let { weatherCard.text = Weather.format(it, prefs.weatherFahrenheit) }
             ?: run { weatherCard.text = I18n.text(R.string.weather_weather_unavailable) }
         val now = System.currentTimeMillis()
         if (weatherLoading || now - lastWeatherAttempt < 2 * 60_000L) return
@@ -466,7 +466,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             main.post {
                 weatherLoading = false
                 if (!isDestroyed && prefs.weatherEnabled && prefs.weatherCity == city.name) {
-                    weatherCard.text = observed?.let { Weather.format(it) }
+                    weatherCard.text = observed?.let { Weather.format(it, prefs.weatherFahrenheit) }
                         ?: I18n.text(R.string.weather_weather_unavailable)
                 }
             }
