@@ -39,7 +39,8 @@ object Weather {
         val search = query.trim().take(60)
         if (search.length < 2) return emptyList()
         val json = request("https://geocoding-api.open-meteo.com/v1/search?name=" +
-            URLEncoder.encode(search, "UTF-8") + "&count=8&language=en&format=json")
+            URLEncoder.encode(search, "UTF-8") + "&count=8&language=" +
+            (if (I18n.isChinese()) "zh" else "en") + "&format=json")
         val rows = json.optJSONArray("results") ?: return emptyList()
         return (0 until rows.length()).mapNotNull { i ->
             val o = rows.optJSONObject(i) ?: return@mapNotNull null

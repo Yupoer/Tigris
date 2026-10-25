@@ -5,7 +5,7 @@ function get(url){return new Promise(function(ok,fail){var x=new XMLHttpRequest(
 x.onload=function(){if(x.status!==200)return fail(Error("Weather unavailable"));try{ok(JSON.parse(x.responseText))}catch(e){fail(e)}};
 x.onerror=x.ontimeout=function(){fail(Error("Weather connection failed"))};x.send()})}
 function search(name){if(String(name||"").trim().length<2)return Promise.resolve([]);
-return get("https://geocoding-api.open-meteo.com/v1/search?name="+encodeURIComponent(name.trim().slice(0,60))+"&count=8&language=en&format=json").then(function(j){
+return get("https://geocoding-api.open-meteo.com/v1/search?name="+encodeURIComponent(name.trim().slice(0,60))+"&count=8&language="+((navigator.language||"").toLowerCase().indexOf("zh")===0?"zh":"en")+"&format=json").then(function(j){
 return(j.results||[]).map(function(c){return{name:c.name,detail:[c.admin1,c.country].filter(Boolean).join(", "),lat:c.latitude,lon:c.longitude}}).filter(valid)})}
 function cached(c,age){try{var d=JSON.parse(localStorage.getItem(NAME)||"null");return d&&d.lat===c.lat&&d.lon===c.lon&&Date.now()>=d.at&&Date.now()-d.at<age?d:null}catch(_){return null}}
 function parse(j,c,at){if(!j||!j.current||!valid(c))return null;var t=Number(j.current.temperature_2m),code=Number(j.current.weather_code);
