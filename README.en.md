@@ -1,5 +1,8 @@
 # Tigris
 
+> **Shared installation checks:** [Brand troubleshooting, USB installation and verification](docs/installation-compatibility.md). AI and manual installation use `tools/check-install.py`. Test Home before applying firmware workarounds; report untested remote Home, wake and boot as unverified.
+
+
 > **Latest stable release: v2.0.6 (October 24, 2026).** Recently opened apps can now be kept in a fixed manual order: automatic promotion is off by default. Release APKs and checksums include their version in the filename. See the [v2.0.6 release notes](docs/releases/v2.0.6.md). The [v2.0.5 home-guard fixes](docs/releases/v2.0.5.md) remain included; issue #14 still needs testing on the reported TV.
 
 <p align="center">
