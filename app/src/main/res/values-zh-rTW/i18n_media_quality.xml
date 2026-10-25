@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="media_quality_wall_title">壁紙畫質</string>
-    <string name="media_quality_wall_desc">自動：僅在記憶體充足的 4K 電視上使用 UHD。1080p：兼容模式。優先 4K：嘗試超高畫質，若資源不可用自動回退。</string>
+    <string name="media_quality_wall_desc">自動：僅在記憶體充足的 4K 電視上使用 UHD。1080p：相容模式。優先 4K：嘗試較高畫質，若無法使用則自動改用其他版本。</string>
     <string name="media_quality_aerial_title">航拍畫質</string>
-    <string name="media_quality_aerial_desc">自動：適配具備 4K HEVC 硬解能力的電視。優先 4K：支持硬解時嘗試。兼容：使用 2K，失敗自動回退。</string>
+    <string name="media_quality_aerial_desc">自動：在支援 4K HEVC 硬體解碼的電視上使用。優先 4K：支援硬體解碼時嘗試播放。相容：使用 2K，失敗時自動改用其他版本。</string>
     <string name="media_quality_4k">優先 4K</string>
     <string name="media_quality_1080">1080p</string>
     <string name="media_quality_auto">自動</string>
-    <string name="media_quality_compat">兼容</string>
+    <string name="media_quality_compat">相容</string>
 </resources>

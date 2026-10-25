@@ -2,21 +2,21 @@
 <resources>
     <string name="i18n_controlcenter_001" formatted="false">關機</string>
     <string name="i18n_controlcenter_002" formatted="false">關機</string>
-    <string name="i18n_controlcenter_003" formatted="false">電視會徹底斷電關閉，用遙控器電源鍵開機。</string>
+    <string name="i18n_controlcenter_003" formatted="false">電視會完全關機，請用遙控器電源鍵重新開機。</string>
     <string name="i18n_controlcenter_004" formatted="false">網路</string>
     <string name="i18n_controlcenter_005" formatted="false">待機</string>
     <string name="i18n_controlcenter_006" formatted="false">清理記憶體</string>
     <string name="i18n_controlcenter_007" formatted="false">螢幕保護程式</string>
-    <string name="i18n_controlcenter_008" formatted="false">重啓</string>
-    <string name="i18n_controlcenter_009" formatted="false">重啓</string>
-    <string name="i18n_controlcenter_010" formatted="false">電視會重新啓動，大約需要一分鐘。</string>
+    <string name="i18n_controlcenter_008" formatted="false">重新啟動</string>
+    <string name="i18n_controlcenter_009" formatted="false">重新啟動</string>
+    <string name="i18n_controlcenter_010" formatted="false">電視將重新啟動，約需一分鐘。</string>
     <string name="i18n_controlcenter_011" formatted="false">設定</string>
     <string name="i18n_controlcenter_012" formatted="false">亮度</string>
     <string name="i18n_controlcenter_013" formatted="false">音量</string>
     <string name="i18n_controlcenter_014" formatted="false">訊號來源</string>
     <string name="i18n_controlcenter_015" formatted="false">亮度</string>
     <string name="i18n_controlcenter_016" formatted="false">音量</string>
-    <string name="i18n_controlcenter_017" formatted="false">本機偵錯未授權：關機、待機、徹底清理不可用</string>
+    <string name="i18n_controlcenter_017" formatted="false">尚未授權本機偵錯，無法使用關機、待機與清理記憶體功能</string>
     <string name="i18n_controlcenter_018" formatted="false">有線網路</string>
     <string name="i18n_controlcenter_019" formatted="false">未連線</string>
     <string name="i18n_controlcenter_020" formatted="false">已連線</string>
@@ -24,11 +24,11 @@
     <string name="i18n_controlcenter_022" formatted="false">在主畫面上顯示…</string>
     <string name="i18n_controlcenter_023" formatted="false">取消</string>
     <string name="i18n_controlcenter_024" formatted="false">在主畫面上顯示</string>
-    <string name="i18n_controlcenter_025" formatted="false">選取的訊號來源會成為主畫面上的一個圖示，按一下就切換過去。</string>
+    <string name="i18n_controlcenter_025" formatted="false">選取的訊號來源會顯示在主畫面；按下圖示即可切換。</string>
     <string name="i18n_controlcenter_026" formatted="false">完成</string>
     <string name="i18n_controlcenter_027" formatted="false">正在釋放記憶體…</string>
     <string name="i18n_controlcenter_028" formatted="false">需要先授權本機偵錯</string>
-    <string name="i18n_controlcenter_029" formatted="false">點“開始”後，電視會彈出“允許偵錯嗎？”，請勾選“始終允許”，再點“允許”。</string>
+    <string name="i18n_controlcenter_029" formatted="false">按「開始」後，請在電視的授權視窗中選擇「一律允許」。</string>
     <string name="i18n_controlcenter_030" formatted="false">開始</string>
     <string name="i18n_controlcenter_031" formatted="false">取消</string>
     <string name="i18n_controlcenter_032" formatted="false">取消</string>

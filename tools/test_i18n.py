@@ -40,6 +40,10 @@ def main() -> None:
             assert Counter(SLOTS.findall(english[key])) == Counter(SLOTS.findall(translated[key])), (
                 f"Format arguments differ in {locale}: {key}"
             )
+    mainland_terms = ("啓", "軟件", "視頻", "投屏", "屏保", "信號源", "二維碼",
+                      "進程", "配置", "兼容", "鏈接", "搜索", "安裝包", "前台")
+    for key, value in taiwan.items():
+        assert not any(term in value for term in mainland_terms), f"Non-Taiwan wording in {key}"
     kotlin = "\n".join(p.read_text(encoding="utf-8") for p in JAVA.rglob("*.kt"))
     missing = set(REFERENCE.findall(kotlin)) - english.keys()
     assert not missing, f"Unresolved translation references: {sorted(missing)}"

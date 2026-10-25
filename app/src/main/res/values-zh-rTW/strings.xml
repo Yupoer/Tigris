@@ -6,5 +6,5 @@
     <string name="airplay_receiver">AirPlay 接收器</string>
     <string name="airplay_not_installed">尚未安裝 AirPlay Direct</string>
     <string name="guard_name">主畫面守護</string>
-    <string name="guard_description">電視內建的主畫面跑到前面時，把主畫面切回來。只看哪個 App 在前景，不讀取螢幕內容。</string>
+    <string name="guard_description">電視內建主畫面蓋過 Tigris 時，會自動切回 Tigris。這項功能只偵測目前顯示的 App，不會讀取畫面內容。</string>
 </resources>

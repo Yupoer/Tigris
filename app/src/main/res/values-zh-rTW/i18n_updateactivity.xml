@@ -3,18 +3,18 @@
     <string name="i18n_updateactivity_001">已安裝 %1$s</string>
     <string name="i18n_updateactivity_002" formatted="false">未安裝</string>
     <string name="i18n_updateactivity_003" formatted="false">軟體更新</string>
-    <string name="i18n_updateactivity_004" formatted="false">始終保持新鮮</string>
-    <string name="i18n_updateactivity_005" formatted="false">主畫面與投放，一起更新。</string>
-    <string name="i18n_updateactivity_006" formatted="false">自動檢查正式版。需要安裝確認時會通知你，更新保留App配置。</string>
+    <string name="i18n_updateactivity_004" formatted="false">保持最新版本</string>
+    <string name="i18n_updateactivity_005" formatted="false">一起更新主畫面與投放功能。</string>
+    <string name="i18n_updateactivity_006" formatted="false">自動檢查正式版本；需要確認安裝時會通知你，更新時會保留 App 設定。</string>
     <string name="i18n_updateactivity_007" formatted="false">檢查更新</string>
-    <string name="i18n_updateactivity_008" formatted="false">自動更新    </string>
+    <string name="i18n_updateactivity_008" formatted="false">自動更新</string>
     <string name="i18n_updateactivity_009" formatted="false">已開啟</string>
     <string name="i18n_updateactivity_010" formatted="false">已關閉</string>
     <string name="i18n_updateactivity_011" formatted="false">允許 Tigris 安裝更新</string>
     <string name="i18n_updateactivity_012" formatted="false">這台電視未提供安裝授權頁</string>
     <string name="i18n_updateactivity_013">安裝 / 更新 %1$s</string>
     <string name="i18n_updateactivity_014" formatted="false">開啟 MiracastReceiver 投放</string>
-    <string name="i18n_updateactivity_015" formatted="false">先檢查更新並安裝投放組件</string>
+    <string name="i18n_updateactivity_015" formatted="false">請先檢查更新並安裝投放元件</string>
     <string name="i18n_updateactivity_016" formatted="false">返回</string>
     <string name="i18n_updateactivity_017" formatted="false">正在處理，請稍候…</string>
 </resources>

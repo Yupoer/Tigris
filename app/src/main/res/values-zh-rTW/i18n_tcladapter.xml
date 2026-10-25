@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="i18n_tcladapter_001" formatted="false">TCL 信號源</string>
-    <string name="i18n_tcladapter_002" formatted="false">TCL 信號源選擇器</string>
+    <string name="i18n_tcladapter_001" formatted="false">TCL 訊號來源</string>
+    <string name="i18n_tcladapter_002" formatted="false">TCL 訊號來源選擇器</string>
 </resources>

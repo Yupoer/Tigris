@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="i18n_wallpaperactivity_001" formatted="false">壁紙</string>
-    <string name="i18n_wallpaperactivity_002" formatted="false">選一個作為主畫面背景，螢幕保護程式也跟著用這個圖源。</string>
+    <string name="i18n_wallpaperactivity_002" formatted="false">選取壁紙作為主畫面背景，螢幕保護程式也會使用相同的圖片來源。</string>
     <string name="i18n_wallpaperactivity_003" formatted="false">用手機設定</string>
-    <string name="i18n_wallpaperactivity_004" formatted="false">手機連同一個 Wi-Fi，用相機或微信掃碼：上傳照片，或者填圖片鏈接（一張圖、隨機圖接口、列出圖片的網頁或 JSON），電視每天自動去取。</string>
-    <string name="i18n_wallpaperactivity_005" formatted="false">正在啓動…</string>
+    <string name="i18n_wallpaperactivity_004" formatted="false">讓手機連上同一個 Wi-Fi，再用相機掃描 QR 碼。你可以上傳照片，或貼上圖片、隨機圖、圖片清單網頁或 JSON 的網址；電視會每天自動更新。</string>
+    <string name="i18n_wallpaperactivity_005" formatted="false">正在啟動…</string>
     <string name="i18n_wallpaperactivity_006" formatted="false">電視沒有連上網路，連上後再開啟這裡。</string>
-    <string name="i18n_wallpaperactivity_007" formatted="false">掃碼上傳照片</string>
-    <string name="i18n_wallpaperactivity_008" formatted="false">掃碼填寫圖片鏈接</string>
+    <string name="i18n_wallpaperactivity_007" formatted="false">掃描 QR 碼上傳照片</string>
+    <string name="i18n_wallpaperactivity_008" formatted="false">掃描 QR 碼設定圖片網址</string>
     <string name="i18n_wallpaperactivity_009" formatted="false">選取後開始下載</string>
-    <string name="i18n_wallpaperactivity_010" formatted="false">還沒有照片，先用手機掃右邊的QR 碼上傳</string>
-    <string name="i18n_wallpaperactivity_011" formatted="false">還沒有鏈接，先用手機掃右邊的QR 碼填寫</string>
+    <string name="i18n_wallpaperactivity_010" formatted="false">還沒有照片，請用手機掃描右側的 QR 碼上傳。</string>
+    <string name="i18n_wallpaperactivity_011" formatted="false">還沒有圖片網址，請用手機掃描右側的 QR 碼設定。</string>
 </resources>
