@@ -363,7 +363,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
         val SOURCES = listOf(BING, SCENERY, FRESH, ANIME, ART, MINE, CUSTOM)
 
         /** Hosts to the captions the photo frame shows under their pictures. */
-        private val CAPTIONS = mapOf("360.cn" to I18n.text(R.string.i18n_wallpapers_001), "wallhaven.cc" to "Wallhaven", "alcy.cc" to I18n.text(R.string.i18n_wallpapers_002),
+        private val CAPTIONS get() = mapOf("360.cn" to I18n.text(R.string.i18n_wallpapers_001), "wallhaven.cc" to "Wallhaven", "alcy.cc" to I18n.text(R.string.i18n_wallpapers_002),
             "clevelandart.org" to I18n.text(R.string.i18n_wallpapers_003), "picsum.photos" to "Lorem Picsum · Unsplash")
 
         /**
@@ -472,7 +472,8 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
 /** The soft multi-colour gradients tvOS 26 uses behind the home grid. */
 object Backgrounds {
     /** key -> (label, colour blobs as x, y, radius (fractions of width), colour). */
-    val THEMES: LinkedHashMap<String, Pair<String, List<Blob>>> = linkedMapOf(
+    val THEMES: LinkedHashMap<String, Pair<String, List<Blob>>>
+        get() = linkedMapOf(
         "green" to (I18n.text(R.string.i18n_wallpapers_011) to listOf(
             Blob(0.10f, 0.35f, 0.75f, 0xFF0B7A2E.toInt()),
             Blob(0.48f, -0.05f, 0.70f, 0xFF02B43C.toInt()),

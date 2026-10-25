@@ -21,7 +21,7 @@ object Shelf {
     private const val UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
     private const val TTL = 15 * 60_000L
 
-    private val sources = mapOf(
+    private val sources get() = mapOf(
         "com.xiaodianshi.tv.yst" to Source(I18n.text(R.string.i18n_shelf_001), ::bilibili),
         "com.douyu.xl.douyutv" to Source(I18n.text(R.string.i18n_shelf_002), ::douyu),
     )
