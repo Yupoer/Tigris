@@ -1,5 +1,8 @@
 package com.leslie.tvhome.tv
 
+import com.leslie.tvhome.I18n
+import com.leslie.tvhome.R
+
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
