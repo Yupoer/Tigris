@@ -5,6 +5,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import kotlin.math.roundToInt
 
 /**
  * Optional weather data engine. No access to location permission or network until the
@@ -84,12 +85,12 @@ object Weather {
             if (!temp.isFinite()) error("Missing temperature")
             val daily = json.optJSONObject("daily")
             val high = daily?.optJSONArray("temperature_2m_max")?.optDouble(0, Double.NaN)
-                ?.takeIf { it.isFinite() }?.let { kotlin.math.roundToInt(it) }
+                ?.takeIf { it.isFinite() }?.let { it.roundToInt() }
             val low = daily?.optJSONArray("temperature_2m_min")?.optDouble(0, Double.NaN)
-                ?.takeIf { it.isFinite() }?.let { kotlin.math.roundToInt(it) }
+                ?.takeIf { it.isFinite() }?.let { it.roundToInt() }
             val at = System.currentTimeMillis()
             val data = Reading(city.name, city.latitude, city.longitude,
-                kotlin.math.roundToInt(temp), high, low, code, at)
+                temp.roundToInt(), high, low, code, at)
             val serialized = JSONObject().put("city", city.name).put("lat", city.latitude)
                 .put("lon", city.longitude).put("temp", data.temperature).put("code", code)
                 .put("high", high ?: JSONObject.NULL).put("low", low ?: JSONObject.NULL)
