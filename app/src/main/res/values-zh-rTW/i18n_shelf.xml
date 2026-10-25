@@ -6,4 +6,7 @@
     <string name="i18n_shelf_004">%1$s · %2$s · %3$s熱度</string>
     <string name="i18n_shelf_005">%1$.1f億</string>
     <string name="i18n_shelf_006">%1$.1f萬</string>
+    <string name="i18n_shelf_007">YouTube · 系統推薦</string>
+    <string name="i18n_shelf_008">%1$s · JustWatch 台灣熱門</string>
+    <string name="i18n_shelf_009">接續觀看</string>
 </resources>

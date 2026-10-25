@@ -6,6 +6,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -21,6 +23,7 @@ import android.graphics.Rect
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.media.tv.TvContract
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -49,6 +52,7 @@ import java.util.concurrent.Executors
 class HomeActivity : Activity(), TileAdapter.Listener {
     companion object {
         const val SHELF_SECONDS = 8
+        private const val YOUTUBE_LISTINGS_REQUEST = 7021
         private const val EXTRA_GUARD = "com.leslie.tvhome.GUARD"
         private const val EXTRA_WAKE = "com.leslie.tvhome.WAKE"
 
@@ -134,7 +138,25 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private var shelfItems: List<Shelf.Item> = emptyList()
     private var shelfIndex = 0
     private var shelfShown = false
+    private var shelfRequestId = 0L
+    private var youtubePermissionRequested = false
+    private var observingRecommendations = false
     private val shelfShow = Runnable { pendingShelf?.let { showShelf(it) } }
+    private val shelfRefresh = Runnable {
+        val pkg = shelfPkg
+        if (resumed && pkg != null && !control.isOpen) showShelf(pkg)
+    }
+    private val youtubeChanged = Runnable {
+        Shelf.invalidate(YouTubeChannels.PACKAGE)
+        if (resumed && shelfPkg == YouTubeChannels.PACKAGE && !control.isOpen)
+            showShelf(YouTubeChannels.PACKAGE)
+    }
+    private val recommendationObserver = object : ContentObserver(main) {
+        override fun onChange(selfChange: Boolean) {
+            main.removeCallbacks(youtubeChanged)
+            main.postDelayed(youtubeChanged, 1_000)
+        }
+    }
     private val shelfAdvance = object : Runnable {
         override fun run() {
             if (!shelfShown || shelfItems.size < 2) return
@@ -142,7 +164,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             val next = (shelfIndex + 1) % shelfItems.size
             val item = shelfItems[next]
             net.execute {
-                val b = Shelf.image(this@HomeActivity, item.image)
+                val b = Shelf.image(this@HomeActivity, item)
                 main.post {
                     if (shelfPkg == pkg && shelfShown && !control.isOpen) {
                         if (b != null) showShelfItem(next, b)
@@ -599,22 +621,28 @@ class HomeActivity : Activity(), TileAdapter.Listener {
 
     private fun showShelf(pkg: String) {
         shelfPkg = pkg
+        val request = ++shelfRequestId
+        val label = adapter.apps.firstOrNull { it.pkg == pkg }?.label ?: pkg
         net.execute {
-            val items = Shelf.items(pkg)
-            val first = items.firstOrNull()?.let { Shelf.image(this, it.image) }
+            val items = Shelf.items(this, pkg, label)
+            val first = items.withIndex().firstNotNullOfOrNull { indexed ->
+                Shelf.image(this, indexed.value)?.let { indexed.index to it }
+            }
             main.post {
-                if (shelfPkg != pkg || first == null || control.isOpen) return@post
+                if (shelfPkg != pkg || shelfRequestId != request || first == null || control.isOpen) return@post
                 shelfItems = items
-                shelfSource.text = Shelf.sourceName(pkg)
+                shelfSource.text = Shelf.sourceName(pkg, label)
                 shelfDots.removeAllViews()
                 repeat(items.size) {
                     shelfDots.addView(View(this).apply { background = rounded(Color.WHITE, dp(4).toFloat()) },
                         LinearLayout.LayoutParams(dp(7), dp(7)).apply { marginStart = dp(7) })
                 }
-                showShelfItem(0, first)
+                showShelfItem(first.first, first.second)
                 setShelfVisible(true)
                 main.removeCallbacks(shelfAdvance)
                 main.postDelayed(shelfAdvance, SHELF_SECONDS * 1000L)
+                main.removeCallbacks(shelfRefresh)
+                main.postDelayed(shelfRefresh, Shelf.refreshDelay(pkg))
             }
         }
     }
@@ -649,7 +677,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             main.post { if (shelfShown && shelfPkg == pkg && shelfIndex == i) setDock(glass, 600) }
         }
         // Fetch the next picture ahead of time.
-        shelfItems.getOrNull((i + 1) % shelfItems.size)?.let { n -> net.execute { Shelf.image(this, n.image) } }
+        shelfItems.getOrNull((i + 1) % shelfItems.size)?.let { n -> net.execute { Shelf.image(this, n) } }
     }
 
     private fun setShelfVisible(v: Boolean) {
@@ -674,8 +702,10 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
 
     private fun hideShelf() {
+        shelfRequestId++
         main.removeCallbacks(shelfShow)
         main.removeCallbacks(shelfAdvance)
+        main.removeCallbacks(shelfRefresh)
         pendingShelf = null
         shelfPkg = null
         setShelfVisible(false)
@@ -744,6 +774,12 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private fun reload(changed: String? = null, forceFocus: Boolean = false) {
         io.execute {
             val list = repo.orderedVisible()
+            // Warm the other dock apps and their first pictures before the remote reaches them.
+            net.execute {
+                for (app in list.take(cols).drop(1)) {
+                    Shelf.items(this, app.pkg, app.label).firstOrNull()?.let { Shelf.image(this, it) }
+                }
+            }
             main.post {
                 val focusedPkg = adapter.apps.getOrNull(focusedPos)?.pkg
                 adapter.submit(list, changed)
@@ -784,6 +820,12 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         focusedPos = pos
         val pkg = adapter.apps.getOrNull(pos)?.pkg
         main.removeCallbacks(shelfShow)
+        if (pkg == YouTubeChannels.PACKAGE &&
+            checkSelfPermission("android.permission.READ_TV_LISTINGS") != PackageManager.PERMISSION_GRANTED &&
+            !youtubePermissionRequested) {
+            youtubePermissionRequested = true
+            requestPermissions(arrayOf("android.permission.READ_TV_LISTINGS"), YOUTUBE_LISTINGS_REQUEST)
+        }
         if (pos < cols && pkg != null && Shelf.has(pkg) && moving < 0) {
             if (pkg != shelfPkg || !shelfShown) {
                 if (shelfShown) hideShelf()
@@ -1101,6 +1143,14 @@ class HomeActivity : Activity(), TileAdapter.Listener {
 
     override fun onStart() {
         super.onStart()
+        if (!observingRecommendations) try {
+            listOf(TvContract.Channels.CONTENT_URI, TvContract.PreviewPrograms.CONTENT_URI,
+                TvContract.WatchNextPrograms.CONTENT_URI).forEach {
+                contentResolver.registerContentObserver(it, true, recommendationObserver)
+            }
+            observingRecommendations = true
+        } catch (_: SecurityException) { contentResolver.unregisterContentObserver(recommendationObserver) }
+          catch (_: IllegalArgumentException) { contentResolver.unregisterContentObserver(recommendationObserver) }
         Guard.ensure(this)
         main.postDelayed({ Guard.rebindIfStalled(this) }, 5_000)
     }
@@ -1122,7 +1172,27 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         main.removeCallbacks(ticker)
         ticker.run()
         control.refresh()
+        Shelf.invalidate(YouTubeChannels.PACKAGE)
+        if (shelfPkg == YouTubeChannels.PACKAGE && !control.isOpen) showShelf(YouTubeChannels.PACKAGE)
         if (shelfShown && !control.isOpen) resumeShelfRotation()
+    }
+
+    override fun onStop() {
+        if (observingRecommendations) {
+            contentResolver.unregisterContentObserver(recommendationObserver)
+            observingRecommendations = false
+        }
+        main.removeCallbacks(youtubeChanged)
+        super.onStop()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == YOUTUBE_LISTINGS_REQUEST && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+            Shelf.invalidate(YouTubeChannels.PACKAGE)
+            if (adapter.apps.getOrNull(focusedPos)?.pkg == YouTubeChannels.PACKAGE)
+                showShelf(YouTubeChannels.PACKAGE)
+        }
     }
 
     override fun onPause() {
@@ -1134,6 +1204,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         main.removeCallbacks(idleFrame)
         main.removeCallbacks(ticker)
         main.removeCallbacks(shelfAdvance)
+        main.removeCallbacks(shelfRefresh)
         super.onPause()
     }
 

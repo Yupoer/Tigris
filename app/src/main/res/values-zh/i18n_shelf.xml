@@ -6,4 +6,7 @@
     <string name="i18n_shelf_004">%1$s · %2$s · %3$s热度</string>
     <string name="i18n_shelf_005">%1$.1f亿</string>
     <string name="i18n_shelf_006">%1$.1f万</string>
+    <string name="i18n_shelf_007">YouTube · 系统推荐</string>
+    <string name="i18n_shelf_008">%1$s · JustWatch 台湾热门</string>
+    <string name="i18n_shelf_009">继续观看</string>
 </resources>

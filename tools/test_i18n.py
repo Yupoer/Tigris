@@ -30,19 +30,21 @@ def catalogue(folder: str) -> dict[str, str]:
 def main() -> None:
     english = catalogue("values")
     chinese = catalogue("values-zh")
-    assert english.keys() == chinese.keys(), (
-        f"Only English: {sorted(english.keys() - chinese.keys())}; "
-        f"only Chinese: {sorted(chinese.keys() - english.keys())}"
-    )
-    for key in english:
-        assert Counter(SLOTS.findall(english[key])) == Counter(SLOTS.findall(chinese[key])), (
-            f"Format arguments differ between locales: {key}"
+    taiwan = catalogue("values-zh-rTW")
+    for locale, translated in (("Simplified Chinese", chinese), ("Traditional Chinese", taiwan)):
+        assert english.keys() == translated.keys(), (
+            f"{locale}: only English: {sorted(english.keys() - translated.keys())}; "
+            f"only translated: {sorted(translated.keys() - english.keys())}"
         )
+        for key in english:
+            assert Counter(SLOTS.findall(english[key])) == Counter(SLOTS.findall(translated[key])), (
+                f"Format arguments differ in {locale}: {key}"
+            )
     kotlin = "\n".join(p.read_text(encoding="utf-8") for p in JAVA.rglob("*.kt"))
     missing = set(REFERENCE.findall(kotlin)) - english.keys()
     assert not missing, f"Unresolved translation references: {sorted(missing)}"
     assert len(english) > 250, f"Unexpectedly incomplete UI catalogue: {len(english)} strings"
-    print(f"i18n validated: {len(english)} English + {len(chinese)} Chinese resources.")
+    print(f"i18n validated: {len(english)} resources in English, Simplified Chinese, and Traditional Chinese.")
 
 if __name__ == "__main__":
     main()

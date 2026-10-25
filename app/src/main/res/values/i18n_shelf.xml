@@ -6,4 +6,7 @@
     <string name="i18n_shelf_004">%1$s · %2$s · %3$s popularity</string>
     <string name="i18n_shelf_005">%1$.1fM</string>
     <string name="i18n_shelf_006">%1$.1fK</string>
+    <string name="i18n_shelf_007">YouTube · Recommended</string>
+    <string name="i18n_shelf_008">%1$s · JustWatch Taiwan</string>
+    <string name="i18n_shelf_009">Continue watching</string>
 </resources>
