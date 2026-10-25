@@ -27,7 +27,7 @@ jobs:
         run: |
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager -print -quit)"
           test -n "$SDKMANAGER"
-          "$SDKMANAGER" --install 'platforms;android-36' 'platforms;android-37' 'build-tools;36.0.0' 'build-tools;37.0.0'
+          "$SDKMANAGER" --install 'platforms;android-36' 'platforms;android-37.0' 'build-tools;36.0.0' 'build-tools;37.0.0' --channel=3
       - uses: gradle/actions/setup-gradle@v4
       - name: Build launcher and receiver
         run: bash tools/build-with-airplay.sh
