@@ -137,7 +137,7 @@ Windows 可在 PowerShell 执行 `ares-*` 指令；一行 Shell 脚本需要 mac
 >
 > **签名不一致时不要直接卸载。** `INSTALL_FAILED_UPDATE_INCOMPATIBLE` 表示新 APK 与原包签名不同；直接卸载会丢失设置和授权。应先找到原签名密钥重新签名。
 
-Tigris 官方包要求 **Android 9 / API 28 或更高**，不支持 LG webOS、三星 Tizen、华为鸿蒙智慧屏等非 Android 系统。
+Tigris 现有**正式 APK** 要求 Android 9 / API 28 或更高，不能安装到 LG webOS、三星 Tizen 等非 Android 系统。LG webOS 是上方介绍的**独立 IPK 开发预览项目**，并非现有 APK 的兼容品牌。
 
 ### 2.1 打开电视的 ADB 调试
 
@@ -546,7 +546,7 @@ Android 没有统一的电视背光 API。目前只适配了索尼 BRAVIA 和小
 
 **支持哪些系统？**
 
-官方 APK 支持 Android 9 / API 28 及以上。LG webOS、三星 Tizen、华为鸿蒙智慧屏等非 Android 系统不能安装；Android 8 及更老版本需要单独维护 Fork。
+正式 APK 支持 Android 9 / API 28 及以上。LG webOS 不能安装 Android APK，请看上方独立 webOS IPK 开发预览；三星 Tizen 等其他非 Android 系统尚不支持。Android 8 及更老版本需要单独维护 Fork。
 
 **投屏要另装吗？**
 

@@ -1,6 +1,6 @@
 # LG webOS AI installation preflight — design contract
 
-> **Status (2026-10-25): planned, not yet implemented in Tigris.** The repository currently ships Android APKs, Android ADB installation scripts and `AGENTS.md` for Android only. It does **not** ship a usable LG webOS IPK, a Tigris Home Helper or the preflight probe described below. An AI agent MUST NOT claim that a webOS installation or Home-key takeover has succeeded. This document defines the requirements for the future installer.
+> **Status (2026-10-25): planned, not yet implemented in Tigris.** The repository currently ships Android APKs, Android ADB installation scripts and `AGENTS.md` for Android only. It now includes a developer-preview webOS application which can be packaged locally as an IPK, plus a read-only LG CLI preflight script. It does **not** ship a stable released webOS IPK, a native Tigris Home Helper or the safety probe described below. An AI agent MUST NOT claim that a webOS installation or Home-key takeover has succeeded. This document defines the requirements for the future installer.
 
 ## Platform routing is mandatory
 
@@ -54,4 +54,4 @@ ssh -p 9922 -i <paired-private-key-path> prisoner@<TV_IP> \
 - No-root native-helper reference (different project; evidence is model/firmware-specific): https://github.com/Razdva122/clean-your-tv-lg-webos
 - Reference input relay and recovery design: https://github.com/Razdva122/clean-your-tv-lg-webos/blob/main/native/prototype/relay.c
 
-The probe and installer described above are **acceptance requirements for future code**, not instructions to pretend those tools already exist.
+The basic CLI inventory and source-build installer are implemented at `webos/install.sh`. The native input-capture probe, persistent Home Helper, physical-remote acceptance tests and any privileged advanced routing described above are **future acceptance requirements**, not implemented functionality.
