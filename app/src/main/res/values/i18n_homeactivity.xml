@@ -39,7 +39,7 @@
     <string name="i18n_homeactivity_037" formatted="false">Cancel</string>
     <string name="i18n_homeactivity_038" formatted="false">Cancel</string>
     <string name="i18n_homeactivity_039" formatted="false">Local debugging must be authorized first</string>
-    <string name="i18n_homeactivity_040" formatted="false">Removing a preinstalled app requires local debugging. After you tap Start, the TV will ask “Allow debugging?”. Check “Always allow”, then tap Allow.</string>
+    <string name="i18n_homeactivity_040" formatted="false">Select Start, then select “Always allow” when your TV asks for debugging permission.</string>
     <string name="i18n_homeactivity_041" formatted="false">Start</string>
     <string name="i18n_homeactivity_042" formatted="false">Cancel</string>
     <string name="i18n_homeactivity_043" formatted="false">This is a preinstalled app. Once removed it won\'t appear on the home screen and won\'t run in the background. You can restore it in Home Screen Settings → Removed preinstalled apps.</string>
@@ -50,7 +50,7 @@
     <string name="i18n_homeactivity_048" formatted="false">Cancel</string>
     <string name="i18n_homeactivity_049" formatted="false">Use the arrow keys to move, press OK when done</string>
     <string name="i18n_homeactivity_050" formatted="false">Enable power off and memory freeing</string>
-    <string name="i18n_homeactivity_051" formatted="false">Local debugging must be allowed once. After you tap Start, the TV will ask “Allow debugging?”. Check “Always allow”, then tap Allow.</string>
+    <string name="i18n_homeactivity_051" formatted="false">Select Start, then select “Always allow” when your TV asks for debugging permission.</string>
     <string name="i18n_homeactivity_052" formatted="false">Start</string>
     <string name="i18n_homeactivity_053" formatted="false">Not now</string>
     <string name="i18n_homeactivity_054" formatted="false">In the dialog, check “Always allow” and tap Allow</string>

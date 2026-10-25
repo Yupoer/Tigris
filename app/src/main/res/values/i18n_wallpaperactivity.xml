@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="i18n_wallpaperactivity_001" formatted="false">Wallpaper</string>
-    <string name="i18n_wallpaperactivity_002" formatted="false">Pick one as the home screen background; the photo frame screensaver uses the same source.</string>
+    <string name="i18n_wallpaperactivity_002" formatted="false">Choose a Home Screen wallpaper. The screen saver uses the same photo source.</string>
     <string name="i18n_wallpaperactivity_003" formatted="false">Set up with your phone</string>
     <string name="i18n_wallpaperactivity_004" formatted="false">Connect your phone to the same Wi-Fi and scan the code with the camera or WeChat: upload photos, or enter an image link (a single image, a random-image endpoint, a page listing images, or JSON). The TV fetches them daily.</string>
     <string name="i18n_wallpaperactivity_005" formatted="false">Starting…</string>
