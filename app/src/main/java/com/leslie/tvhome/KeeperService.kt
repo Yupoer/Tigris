@@ -14,6 +14,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.Log
 import java.util.concurrent.Executors
 
 /**
@@ -113,6 +114,14 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(c: Context, i: Intent) {
         KeeperService.start(c)
         Guard.ensure(c)
-        // The guard waits for a confirmed stock HOME event. Boot alone must not steal an input.
+        // On this fork, Home is Tigris even where firmware pins its own launcher.
+        // After a cold boot the stock HOME can appear before the accessibility service binds,
+        // so no window event follows for the guard to observe. Start our HOME explicitly.
+        if (i.action == Intent.ACTION_BOOT_COMPLETED && Prefs(c).guard) {
+            Handler(Looper.getMainLooper()).postDelayed({
+                runCatching { c.startActivity(HomeActivity.bringBack(c)) }
+                    .onFailure { Log.w("TigrisBoot", "could not open Tigris after boot", it) }
+            }, 2_500)
+        }
     }
 }

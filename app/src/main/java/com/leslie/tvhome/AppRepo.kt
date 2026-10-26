@@ -87,6 +87,18 @@ class AppRepo(private val ctx: Context) {
         // (the guard build lists it as an app).
         HIDE_ALWAYS.forEach { byPkg.remove(it) }
         if (byPkg[ctx.packageName]?.component?.className == HomeActivity::class.java.name) byPkg.remove(ctx.packageName)
+        // Keep one explicit route back to the stock HOME. It is a grid tile, never a
+        // second default launcher; HomeGuardService permits this visit until the user leaves.
+        val stock = pm.queryIntentActivities(
+            Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), PackageManager.MATCH_DEFAULT_ONLY,
+        ).filter { it.activityInfo.packageName != ctx.packageName && it.priority >= 0 }
+            .maxByOrNull { it.priority }
+        stock?.activityInfo?.let { ai ->
+            val label = if (ai.packageName == "com.google.android.apps.tv.launcherx") "Google TV"
+                else ai.loadLabel(pm).toString().trim()
+            byPkg[ai.packageName] = AppEntry(ai.packageName, label,
+                ComponentName(ai.packageName, ai.name), false)
+        }
         for (s in prefs.pinnedInputs) {
             val i = InputTile.decode(s) ?: continue
             byPkg[InputTile.key(i)] = AppEntry(InputTile.key(i), i.name, ComponentName(ctx, HomeActivity::class.java), false, i)

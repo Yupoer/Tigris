@@ -29,7 +29,7 @@ internal class HomeTakeoverPolicy {
     }
 
     companion object {
-        const val SETTLE_MS = 350L
+        const val SETTLE_MS = 100L
         private const val MAX_AGE_MS = 2_000L
         private const val COOLDOWN_MS = 2_000L
         private const val WINDOW_MS = 30_000L

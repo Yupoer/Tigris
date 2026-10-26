@@ -5,6 +5,7 @@ on:
   push:
     branches: [main]
     paths:
+      - app/**
       - airplay-direct/**
       - tools/build-with-airplay.sh
       - tools/install-with-airplay.sh

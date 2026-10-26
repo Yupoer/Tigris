@@ -22,8 +22,8 @@ class HomeTakeoverPolicyTest {
     @Test fun onlyFreshSettledHomeCanTakeOverOnce() {
         val policy = HomeTakeoverPolicy()
         policy.observe(HomeTakeoverPolicy.Window.STOCK_HOME, 1000)
-        assertFalse(policy.request(1100))
-        assertTrue(policy.request(1350))
+        assertFalse(policy.request(1050))
+        assertTrue(policy.request(1100))
         assertFalse(policy.request(1700))
         policy.observe(HomeTakeoverPolicy.Window.STOCK_HOME, 5000)
         assertFalse(policy.request(8000))
@@ -41,13 +41,13 @@ class HomeTakeoverPolicyTest {
         val policy = HomeTakeoverPolicy()
         for (time in listOf(1000L, 4000L, 7000L)) {
             policy.observe(HomeTakeoverPolicy.Window.STOCK_HOME, time)
-            assertTrue(policy.request(time + 350))
+            assertTrue(policy.request(time + 100))
         }
         policy.observe(HomeTakeoverPolicy.Window.STOCK_HOME, 10000)
-        assertFalse(policy.request(10350))
+        assertFalse(policy.request(10100))
         policy.observe(HomeTakeoverPolicy.Window.STOCK_HOME, 20000)
-        assertFalse(policy.request(20350))
+        assertFalse(policy.request(20100))
         policy.observe(HomeTakeoverPolicy.Window.STOCK_HOME, 80000)
-        assertTrue(policy.request(80350))
+        assertTrue(policy.request(80100))
     }
 }
