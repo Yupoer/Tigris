@@ -84,7 +84,7 @@ class TVCompatibilityDocsTest(unittest.TestCase):
         en = compat.build([self.issue()], True)
         self.assertIn("已安装且能启动（自报）", zh)
         self.assertIn("Installed and launched (reported)", en)
-        self.assertIn("https://github.com/lesnolie/Tigris/issues/12", zh)
+        self.assertIn(f"https://github.com/{compat.REPO}/issues/12", zh)
         self.assertIn("v2.0.2", en)
 
     def test_malicious_or_multiline_model_is_escaped(self):
