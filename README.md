@@ -2,6 +2,8 @@
 
 > **此 fork 的 AirPlay 整合：**控制中心會開啟 [`airplay-direct/`](airplay-direct/) 內唯一的 AirPlay 接收器。可依 [AirPlay 安裝教學](docs/AIRPLAY.md) 從這個 repo 建置與安裝首頁和接收器；Tigris 本身不是第二個 AirPlay 接收器。
 
+> **Chromecast 本機偵錯：**若關機或深度記憶體清理一直顯示「重試」，請看 [重開機後重新開啟 ADB 5555 的步驟](docs/CHROMECAST_ADB.md)。首頁與 AirPlay 不依賴這項權限。
+
 > **LG webOS 测试包 / Developer preview:** [webos-v0.1.0-preview.1](https://github.com/lesnolie/Tigris/releases/tag/webos-v0.1.0-preview.1) · [IPK 安装、启动、更新和卸载 / Setup guide](https://github.com/lesnolie/Tigris/blob/main/docs/webos-preview-install.md)。已提供打包 IPK，无需自行构建；未做实机测试，不是稳定版，不接管 Home。Prebuilt IPK available; hardware untested, no Home takeover.
 
 > **统一安装验收 / Shared compatibility rules:** [按品牌排查、遥控器/U 盘安装、电脑检查与四项验收](docs/installation-compatibility.md). AI 与手动安装使用同一个 `tools/check-install.py`；先验证 Home，失败才处理品牌限制。APK 安装不等于桌面接管，未测项目必须标记未验证。
