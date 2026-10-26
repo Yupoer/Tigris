@@ -240,7 +240,8 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             addAction(Intent.ACTION_SCREEN_OFF)
         })
         KeeperService.start(this)
-        if (!prefs.adbAuthorized) main.postDelayed({ askAdbAuthorization() }, if (intro != null) 8000L else 1500L)
+        if (!prefs.adbAuthorized && android.os.Build.VERSION.SDK_INT < 30)
+            main.postDelayed({ askAdbAuthorization() }, if (intro != null) 8000L else 1500L)
     }
 
     // ------------------------------------------------------------------- intro
@@ -1217,6 +1218,10 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
 
     fun authorizeAdb() {
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            startActivity(android.content.Intent(this, LocalAdbSetupActivity::class.java))
+            return
+        }
         Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_054), Toast.LENGTH_LONG).show()
         io.execute {
             val ok = LocalAdb.shell(this, "echo ok", 60_000) != null

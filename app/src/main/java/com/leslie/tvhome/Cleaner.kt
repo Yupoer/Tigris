@@ -10,11 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * Talks to the TV's own adbd on 127.0.0.1:5555 so a normal app can run
- * shell-privileged commands (force-stop, shutdown). The first connection
- * makes the TV show I18n.text(R.string.i18n_cleaner_001); after I18n.text(R.string.i18n_cleaner_002) it is silent.
- */
+/** Shell access through paired Wireless debugging, with legacy 5555 for older TVs. */
 object LocalAdb {
     private const val TAG = "LocalAdb"
 
@@ -32,6 +28,10 @@ object LocalAdb {
      */
     fun shell(ctx: Context, cmd: String, waitAuthMs: Int = 4000): String? {
         val prefs = Prefs(ctx)
+        runCatching { LocalAdbTls.shell(ctx, cmd) }.getOrNull()?.let {
+            prefs.adbAuthorized = true
+            return it
+        }
         return try {
             Dadb.create("127.0.0.1", 5555, keys(ctx), connectTimeout = 3000, socketTimeout = waitAuthMs).use { d ->
                 d.shell(cmd).allOutput.also { prefs.adbAuthorized = true }
