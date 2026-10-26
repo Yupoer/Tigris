@@ -403,11 +403,17 @@ class SettingsActivity : Activity() {
 
         section(I18n.text(R.string.i18n_settingsactivity_114))
         row(I18n.text(R.string.i18n_settingsactivity_115), I18n.text(R.string.i18n_settingsactivity_116),
-            { if (prefs.adbAuthorized) I18n.text(R.string.i18n_settingsactivity_117) else I18n.text(R.string.i18n_settingsactivity_118) }) { v ->
-            v.text = I18n.text(R.string.i18n_settingsactivity_119)
+            { if (prefs.adbAuthorized) I18n.text(R.string.i18n_settingsactivity_117) else I18n.text(R.string.i18n_settingsactivity_118) }, chevron = true) {
+            val value = it
+            value.text = I18n.text(R.string.local_adb_testing)
             Thread {
-                val ok = LocalAdb.shell(applicationContext, "echo ok", 60_000) != null
-                runOnUiThread { v.text = if (ok) I18n.text(R.string.i18n_settingsactivity_120) else I18n.text(R.string.i18n_settingsactivity_121) }
+                val ok = LocalAdb.authorize(applicationContext)
+                runOnUiThread {
+                    if (isDestroyed) return@runOnUiThread
+                    value.text = I18n.text(if (ok) R.string.i18n_settingsactivity_120 else R.string.i18n_settingsactivity_118)
+                    if (!ok && android.os.Build.VERSION.SDK_INT >= 30)
+                        startActivity(Intent(this, LocalAdbSetupActivity::class.java))
+                }
             }.start()
         }
         // Resolver success is not proof that the physical HOME key reaches us.
@@ -439,6 +445,17 @@ class SettingsActivity : Activity() {
                 if (ok) { prefs.keepAdb = on; Guard.ensureAdb(applicationContext) }
                 runOnUiThread { v.text = if (ok) onOff(prefs.keepAdb) else I18n.text(R.string.i18n_settingsactivity_135) }
             }.start()
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 30) row(I18n.text(R.string.local_adb_keep_wireless),
+            I18n.text(R.string.local_adb_keep_wireless_help), { onOff(prefs.keepWirelessAdb) }) { v ->
+            val on = !prefs.keepWirelessAdb
+            if (on && !Guard.hasSecureSettings(this)) {
+                v.text = I18n.text(R.string.local_adb_keep_needs_permission)
+            } else {
+                prefs.keepWirelessAdb = on
+                if (on) Guard.ensureAdb(applicationContext)
+                v.text = onOff(on)
+            }
         }
         row(I18n.text(R.string.i18n_settingsactivity_136), I18n.text(R.string.i18n_settingsactivity_137), { "" }, chevron = true) { runCatching { startActivity(TvControls(this).settingsIntent()) } }
         row(I18n.text(R.string.i18n_settingsactivity_138), I18n.text(R.string.i18n_settingsactivity_139),

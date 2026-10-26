@@ -54,6 +54,21 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
         return all.firstOrNull { it.name == name } ?: all.firstOrNull()
     }
 
+    /** Select one cached photo without changing or clearing the rest of its category. */
+    fun select(file: File): Boolean {
+        if (files().none { it.name == file.name && it.canonicalPath == file.canonicalPath }) return false
+        showFile.writeText(file.name)
+        slotFile.writeText((System.currentTimeMillis() / (Prefs(ctx).wallMinutes.coerceAtLeast(1) * 60_000L)).toString())
+        return true
+    }
+
+    /** Fill the category strip gradually; keep the actual image files bounded by [MAX_FILES]. */
+    fun prefetch(minimum: Int = 4) {
+        if (source == MINE || source == CUSTOM) return
+        refresh()
+        while (files().size < minimum.coerceAtMost(MAX_FILES) && download() != null) Unit
+    }
+
     /** Blocking. Moves the home screen on once every [minutes] (or now, with [force]); true if its picture changed. */
     fun advance(minutes: Int, force: Boolean = false): Boolean {
         val slot = System.currentTimeMillis() / (minutes.coerceAtLeast(1) * 60_000L)
@@ -115,7 +130,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
     private fun listBing(items: JSONArray) {
         val uhd = MediaQuality.uhdWallpapers(ctx)
         for (idx in listOf(0, 7)) {
-            val json = get("https://cn.bing.com/HPImageArchive.aspx?format=js&idx=$idx&n=8&mkt=zh-CN").decodeToString()
+            val json = get("https://cn.bing.com/HPImageArchive.aspx?format=js&idx=$idx&n=8&mkt=zh-TW").decodeToString()
             val imgs = JSONObject(json).getJSONArray("images")
             for (i in 0 until imgs.length()) {
                 val o = imgs.getJSONObject(i)
@@ -416,13 +431,6 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
 
         private fun List<String>.rotate(day: Int) = if (isEmpty()) this else drop(day % size) + take(day % size)
 
-        /**
-         * Keeps one picture (the gallery's preview) of each downloaded source that is not [keep], so
-         * trying sources out doesn't pile up files. Photos and custom links are left alone.
-         */
-        fun trimExcept(ctx: Context, keep: String) {
-            for (s in SOURCES) if (s != keep && s != MINE && s != CUSTOM) Wallpapers(ctx, s).files().drop(1).forEach { it.delete() }
-        }
         private val LOCKS = java.util.concurrent.ConcurrentHashMap<String, Any>()
         private const val PER_LINK = 6
         private const val MAX_DOWNLOAD = 15L * 1024 * 1024

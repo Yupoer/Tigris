@@ -3,7 +3,8 @@
 (function (global) {
   "use strict";
   var preferred = (global.navigator.languages && global.navigator.languages[0]) || global.navigator.language || "en";
-  var lang = /^zh(?:-|$)/i.test(preferred) ? "zh" : "en";
+  var lang = /^zh-(?:CN|SG|Hans)(?:-|$)/i.test(preferred) ? "zh"
+    : /^zh(?:-|$)/i.test(preferred) ? "zh-TW" : "en";
   var messages = {
   "zh": {
     "subtitle": "在手机上改，电视上马上生效",
@@ -78,6 +79,83 @@
     "source_custom": "自定义链接",
     "source_green": "绿色",
     "source_blue": "蓝色",
+    "source_purple": "紫色",
+    "source_orange": "橙色",
+    "source_graphite": "深灰"
+  },
+  "zh-TW": {
+    "subtitle": "用手機調整，電視立即套用",
+    "wallpaper": "主畫面背景",
+    "saver": "螢幕保護程式",
+    "photos": "照片",
+    "aerial": "Apple TV 航拍",
+    "saverHint": "航拍影片會從 Apple 伺服器播放（約 15–20 Mbps）；無法播放時會自動改用照片。螢幕保護程式使用上方選取的壁紙來源。",
+    "intro": "開機動畫",
+    "introOff": "關閉",
+    "introBoot": "開機時",
+    "introWake": "開機及喚醒時",
+    "uploadIntro": "上傳動畫影片",
+    "introVideo": "內建／上傳的影片",
+    "introWordmark": "Tigris 字樣",
+    "settingsBackdrop": "設定頁背景",
+    "uploadBackdrop": "上傳設定頁背景",
+    "avatar": "頭像",
+    "uploadAvatar": "上傳頭像",
+    "avatarHint": "圖片會置中裁成正方形，顯示為主畫面右上角的圓形頭像；返回主畫面後生效。",
+    "settingsIcon": "設定圖示",
+    "uploadIcon": "上傳設定圖示",
+    "myPhotos": "我的照片",
+    "choosePhotos": "選取照片上傳",
+    "uploadPhotosHint": "上傳後會切換成「我的照片」。電視會將照片縮至 1920 × 1080 儲存。",
+    "customLinks": "自訂圖片網址",
+    "linksPlaceholder": "每行一個網址，例如\nhttps://example.com/wallpaper.jpg\nhttps://example.com/random-image",
+    "linksHint": "可貼上圖片網址、隨機圖片網址，或列出圖片的網頁／JSON。電視每天檢查一次，並保留數張圖片。",
+    "save": "儲存並取得圖片",
+    "empty": "目前沒有內容",
+    "delete": "刪除",
+    "deleted": "已刪除",
+    "changedTo": "已切換為 {0}",
+    "saverSet": "螢幕保護程式：{0}",
+    "introSet": "開機動畫：{0}",
+    "introSourceSet": "動畫內容：{0}",
+    "backdropActive": "設定頁目前使用這張圖片。你可以在電視設定中切回一般背景。",
+    "backdropDelete": "刪除這張圖片",
+    "backdropDefault": "目前使用內建背景。可上傳 16:9 橫向圖片，主體放左側，右側保留選單空間。",
+    "avatarCustom": "目前使用自訂頭像。",
+    "avatarDefault": "目前使用預設頭像。",
+    "avatarReset": "恢復預設頭像",
+    "avatarResetDone": "已恢復預設頭像",
+    "iconActive": "主畫面及設定頁目前使用這張圖片。",
+    "iconReset": "恢復預設齒輪圖示",
+    "iconResetDone": "已恢復預設圖示",
+    "iconDefault": "這張圖片會用於主畫面設定圖示及設定頁的大圖，建議使用 16:9 橫向圖片。",
+    "introUploaded": "已上傳（{0} MB）。",
+    "introDelete": "刪除",
+    "introDeleted": "已刪除動畫影片",
+    "introDefault": "建議使用結尾停在黑底標誌的短片；沒有上傳時會播放內建動畫。",
+    "uploadingPhotos": "正在上傳 {0} 張照片…",
+    "uploadedPhotos": "已上傳 {0} 張照片",
+    "invalidPhotos": "沒有可用的圖片",
+    "uploadFailed": "上傳失敗：{0}",
+    "uploading": "正在上傳…",
+    "introSuccess": "已上傳，可在電視設定中預覽",
+    "introBad": "電視無法播放這個檔案",
+    "backdropSuccess": "背景已更新，開啟設定即可查看",
+    "iconSuccess": "圖示已更新，返回主畫面即可查看",
+    "avatarSuccess": "頭像已更新，返回主畫面即可查看",
+    "invalidImage": "圖片格式不支援",
+    "saved": "已儲存，電視正在取得圖片",
+    "cleared": "已清空",
+    "offline": "無法連接電視，請重新掃描 QR 碼",
+    "source_daily": "風景照片",
+    "source_scenery": "風景攝影",
+    "source_fresh": "寵物照片",
+    "source_anime": "動漫壁紙",
+    "source_art": "名畫",
+    "source_mine": "我的照片",
+    "source_custom": "自訂圖片網址",
+    "source_green": "綠色",
+    "source_blue": "藍色",
     "source_purple": "紫色",
     "source_orange": "橙色",
     "source_graphite": "深灰"
@@ -173,7 +251,7 @@
     return known[id] ? t("source_" + id) : (fallback || id);
   }
   function apply(doc) {
-    doc.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+    doc.documentElement.lang = lang === "zh" ? "zh-CN" : lang === "zh-TW" ? "zh-TW" : "en";
     var nodes = doc.querySelectorAll("[data-i18n]");
     for (var i = 0; i < nodes.length; i++) {
       nodes[i].textContent = t(nodes[i].getAttribute("data-i18n"));

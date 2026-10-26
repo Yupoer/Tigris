@@ -10,8 +10,8 @@ android {
         applicationId = "com.leslie.tvhome"
         minSdk = 28
         targetSdk = 31
-        versionCode = 14
-        versionName = "2.0.8"
+        versionCode = 16
+        versionName = "2.0.10"
     }
 
     // standard declares itself a home screen. guard does not: TCL's package verifier refuses any
@@ -58,6 +58,8 @@ dependencies {
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("androidx.palette:palette:1.0.0")
     implementation("dev.mobile:dadb:2.0.0")
+    implementation("com.github.MuntashirAkon:libadb-android:3.1.1")
+    implementation("org.conscrypt:conscrypt-android:2.5.3")
     // Apple TV aerial screensaver.
     implementation("androidx.media3:media3-exoplayer:1.5.1")
     // The page a phone opens from the QR code (wallpapers, uploads).
