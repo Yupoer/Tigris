@@ -8,6 +8,7 @@ on:
       - airplay-direct/**
       - tools/build-with-airplay.sh
       - tools/install-with-airplay.sh
+      - tools/resolve-adb-tv.sh
       - .github/workflows/airplay-bundle.yml
 
 permissions:

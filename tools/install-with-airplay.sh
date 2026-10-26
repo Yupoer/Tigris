@@ -5,8 +5,7 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 : "${TV:?Set TV to the Android TV IP address and ADB port}"
 FLAVOR=${FLAVOR:-standard}
 [[ "$FLAVOR" == standard || "$FLAVOR" == guard ]] || { echo 'FLAVOR must be standard or guard' >&2; exit 2; }
-SERIAL=$TV
-[[ "$SERIAL" == *:* ]] || SERIAL="$SERIAL:5555"
+SERIAL=$(TV="$TV" bash "$ROOT/tools/resolve-adb-tv.sh")
 AIRPLAY_APK="$ROOT/dist/AirPlay-Direct.apk"
 TIGRIS_APK="$ROOT/dist/Tigris-$FLAVOR.apk"
 [[ -s "$AIRPLAY_APK" && -s "$TIGRIS_APK" ]] || { echo 'Run tools/build-with-airplay.sh first' >&2; exit 2; }
@@ -20,7 +19,6 @@ for line in (folder/'SHA256SUMS.txt').read_text().splitlines():
         raise SystemExit(f"APK checksum mismatch: {name}")
 print('Bundle checksums verified')
 PY
-adb connect "$SERIAL"
 [[ "$(adb -s "$SERIAL" get-state)" == device ]] || { echo 'ADB connection is not authorized' >&2; exit 1; }
 SDK=$(adb -s "$SERIAL" shell getprop ro.build.version.sdk | tr -d '\r')
 [[ "$SDK" =~ ^[0-9]+$ ]] && (( SDK >= 28 )) || { echo 'Tigris requires Android 9 or newer' >&2; exit 1; }
@@ -35,5 +33,5 @@ if adb -s "$SERIAL" shell pm path io.github.jqssun.airplay.cleanhome | grep -q '
 else
   adb -s "$SERIAL" install "$AIRPLAY_APK"
 fi
-TV="$TV" APK="$TIGRIS_APK" bash "$ROOT/install.sh" install --flavor "$FLAVOR"
+TV="$SERIAL" APK="$TIGRIS_APK" bash "$ROOT/install.sh" install --flavor "$FLAVOR"
 echo 'AirPlay Direct and Tigris installed. Verify Home, receiver name, and a real iPhone/Mac projection on the TV.'

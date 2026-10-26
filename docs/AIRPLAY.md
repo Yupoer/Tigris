@@ -29,9 +29,11 @@ Android/Kotlin 原始碼與 JNI 橋接程式來自原私人 repo 的 AirPlay Dir
 先在電視開啟並授權 ADB，再執行：
 
 ```sh
-TV=192.168.1.20:5555 bash tools/install-with-airplay.sh
+TV=192.168.1.20 bash tools/install-with-airplay.sh
 ```
 
 只有在電視拒絕宣告 HOME 的首頁時，才使用 `FLAVOR=guard`。安裝程式會核對 APK 雜湊；若未安裝 AirPlay Direct，就先安裝它，再以本機 Tigris APK 呼叫既有安裝流程。既有原廠首頁會保留。若已有 AirPlay Direct，預設保留現有版本及資料；確定要更新時才加上 `REPLACE_AIRPLAY=1`。簽章不同時，Android 會拒絕覆蓋；腳本不會為了繞過錯誤而移除 App 或清除資料。
+
+電視的「無線偵錯」通訊埠可能變動。電腦完成一次配對後，腳本會依 `TV` 的 IP 透過 ADB 網路探索找到目前的通訊埠；不必每次手動輸入埠號。若電視關閉了無線偵錯，仍須在電視重新開啟。也可以明確傳入 `TV=IP:通訊埠`。
 
 最後在電視開啟 Tigris 控制中心 → AirPlay，檢查接收器名稱與狀態，並用同一區域網路上的 iPhone 或 Mac 實際鏡像測試。測試前確認沒有其他接收器公布相同名稱。建置或安裝成功本身不代表這台電視的投放已通過驗收。
