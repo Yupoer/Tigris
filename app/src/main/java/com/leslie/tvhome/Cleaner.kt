@@ -2,6 +2,8 @@ package com.leslie.tvhome
 
 import android.app.ActivityManager
 import android.content.Context
+import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import dadb.AdbKeyPair
 import dadb.Dadb
@@ -40,6 +42,22 @@ object LocalAdb {
             Log.w(TAG, "adb shell failed: $cmd", e)
             null
         }
+    }
+
+    /** User-initiated one-tap check. Reuse an existing pairing before asking for a new code. */
+    fun authorize(ctx: Context): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Guard.hasSecureSettings(ctx) &&
+            Settings.Global.getInt(ctx.contentResolver, "adb_wifi_enabled", 0) != 1) {
+            runCatching {
+                if (Settings.Global.putInt(ctx.contentResolver, "adb_wifi_enabled", 1))
+                    Thread.sleep(1_200) // Give adbd time to advertise its new TLS port.
+            }
+                .onFailure { Log.w(TAG, "could not enable Wireless debugging", it) }
+        }
+        val waitMs = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) 60_000 else 8_000
+        val ok = shell(ctx, "echo TIGRIS_ADB_OK", waitMs)?.contains("TIGRIS_ADB_OK") == true
+        Prefs(ctx).adbAuthorized = ok
+        return ok
     }
 
     /** Fire-and-forget variant for commands that kill the connection (shutdown). */

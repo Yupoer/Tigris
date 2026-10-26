@@ -1218,15 +1218,13 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
 
     fun authorizeAdb() {
-        if (android.os.Build.VERSION.SDK_INT >= 30) {
-            startActivity(android.content.Intent(this, LocalAdbSetupActivity::class.java))
-            return
-        }
-        Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_054), Toast.LENGTH_LONG).show()
         io.execute {
-            val ok = LocalAdb.shell(this, "echo ok", 60_000) != null
+            val ok = LocalAdb.authorize(this)
             main.post {
-                Toast.makeText(this, if (ok) I18n.text(R.string.i18n_homeactivity_055) else I18n.text(R.string.i18n_homeactivity_056), Toast.LENGTH_LONG).show()
+                if (ok) Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_055), Toast.LENGTH_LONG).show()
+                else if (android.os.Build.VERSION.SDK_INT >= 30)
+                    startActivity(android.content.Intent(this, LocalAdbSetupActivity::class.java))
+                else Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_056), Toast.LENGTH_LONG).show()
                 control.refresh()
             }
         }

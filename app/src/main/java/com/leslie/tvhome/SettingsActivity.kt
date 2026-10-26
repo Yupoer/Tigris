@@ -404,7 +404,17 @@ class SettingsActivity : Activity() {
         section(I18n.text(R.string.i18n_settingsactivity_114))
         row(I18n.text(R.string.i18n_settingsactivity_115), I18n.text(R.string.i18n_settingsactivity_116),
             { if (prefs.adbAuthorized) I18n.text(R.string.i18n_settingsactivity_117) else I18n.text(R.string.i18n_settingsactivity_118) }, chevron = true) {
-            startActivity(Intent(this, LocalAdbSetupActivity::class.java))
+            val value = it
+            value.text = I18n.text(R.string.local_adb_testing)
+            Thread {
+                val ok = LocalAdb.authorize(applicationContext)
+                runOnUiThread {
+                    if (isDestroyed) return@runOnUiThread
+                    value.text = I18n.text(if (ok) R.string.i18n_settingsactivity_120 else R.string.i18n_settingsactivity_118)
+                    if (!ok && android.os.Build.VERSION.SDK_INT >= 30)
+                        startActivity(Intent(this, LocalAdbSetupActivity::class.java))
+                }
+            }.start()
         }
         // Resolver success is not proof that the physical HOME key reaches us.
         row(I18n.text(R.string.install_home_check_title), I18n.text(R.string.install_home_check_help), { "" }) {
