@@ -17,7 +17,7 @@
     <string name="local_adb_starting">Starting…</string>
     <string name="local_adb_offline">Connect the TV to Wi-Fi and try again.</string>
     <string name="local_adb_keep_wireless">Keep Wireless debugging on</string>
-    <string name="local_adb_keep_wireless_help">Restore paired Wireless debugging after restart. Paired devices on the same Wi-Fi can reach this TV's debugging service.</string>
+    <string name="local_adb_keep_wireless_help">Restore paired Wireless debugging after restart. Paired devices on the same Wi-Fi can reach the debugging service.</string>
     <string name="local_adb_keep_needs_permission">Secure Settings permission is required</string>
     <string name="airplay_receiver">AirPlay receiver</string>
     <string name="airplay_not_installed">AirPlay Direct is not installed</string>
