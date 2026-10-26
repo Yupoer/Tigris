@@ -115,9 +115,9 @@
     <string name="i18n_settingsactivity_113">%1$s 個</string>
     <string name="i18n_settingsactivity_114" formatted="false">系統</string>
     <string name="i18n_settingsactivity_115" formatted="false">本機偵錯授權</string>
-    <string name="i18n_settingsactivity_116" formatted="false">配對 Android 無線偵錯，讓主畫面執行關機與記憶體清理；通訊埠會自動尋找。</string>
+    <string name="i18n_settingsactivity_116" formatted="false">按一下連線；若尚未授權，才需配對一次。用於關機與記憶體清理。</string>
     <string name="i18n_settingsactivity_117" formatted="false">已授權</string>
-    <string name="i18n_settingsactivity_118" formatted="false">設定配對</string>
+    <string name="i18n_settingsactivity_118" formatted="false">按一下連線</string>
     <string name="i18n_settingsactivity_119" formatted="false">請在提示視窗中選擇「一律允許」</string>
     <string name="i18n_settingsactivity_120" formatted="false">已授權</string>
     <string name="i18n_settingsactivity_121" formatted="false">未授權，按確認鍵重試</string>
