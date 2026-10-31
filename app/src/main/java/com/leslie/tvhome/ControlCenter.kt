@@ -905,12 +905,14 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
                     action()
                 } else {
                     refresh()
-                    home.showSheet(Sheet(host).title(I18n.text(R.string.i18n_controlcenter_028))
-                        .message(I18n.text(if (android.os.Build.VERSION.SDK_INT >= 30)
-                            R.string.i18n_controlcenter_034 else R.string.i18n_controlcenter_029))
-                        .button(I18n.text(if (android.os.Build.VERSION.SDK_INT >= 30)
-                            R.string.i18n_settingsactivity_118 else R.string.i18n_controlcenter_030)) { home.authorizeAdb() }
-                        .button(I18n.text(R.string.i18n_controlcenter_031)) {})
+                    val modern = android.os.Build.VERSION.SDK_INT >= 30
+                    val sheet = Sheet(host).title(I18n.text(R.string.i18n_controlcenter_028))
+                        .message(I18n.text(if (modern) R.string.i18n_controlcenter_034 else R.string.i18n_controlcenter_029))
+                    if (modern) sheet.button(I18n.text(R.string.local_adb_open_settings)) {
+                        runCatching { ctx.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)) }
+                    } else sheet.button(I18n.text(R.string.i18n_controlcenter_030)) { home.authorizeAdb() }
+                    sheet.button(I18n.text(R.string.i18n_controlcenter_031)) {}
+                    home.showSheet(sheet)
                 }
             }
         }.start()

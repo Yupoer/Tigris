@@ -33,6 +33,6 @@
     <string name="i18n_controlcenter_031" formatted="false">取消</string>
     <string name="i18n_controlcenter_032" formatted="false">取消</string>
     <string name="i18n_controlcenter_033" formatted="false">這台裝置沒有提供 HDMI 輸入。若 Tigris 裝在外接 Chromecast，就無法列出電視機身的插孔；讀取訊號來源不需要本機偵錯。</string>
-    <string name="i18n_controlcenter_034" formatted="false">關機與深度清理需另行配對 Android 無線偵錯；訊號來源、音量與網路資訊不需要。</string>
+    <string name="i18n_controlcenter_034" formatted="false">關機與深度清理需要已開啟且已授權的偵錯連線；若只是關閉，可到 Android 設定開啟。訊號來源等資訊不需要。</string>
     <string name="i18n_controlcenter_035" formatted="false">正在檢查授權…</string>
 </resources>

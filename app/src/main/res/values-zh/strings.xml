@@ -8,7 +8,7 @@
     <string name="wallpaper_download_more">加载更多</string>
     <string name="wallpaper_phone_upload">用手机添加</string>
     <string name="local_adb_title">本机调试</string>
-    <string name="local_adb_pair_required">普通 App 无法永久取得关机和深度清理权限。若要使用，需另行配对无线调试；输入源、音量和网络信息不需要。</string>
+    <string name="local_adb_pair_required">关机和深度清理需要已开启且已授权的调试连接。若只是关闭，先到 Android 设置开启；只有首次使用才需配对。输入源等信息不需要。</string>
     <string name="local_adb_pair_option">配对高级操作</string>
     <string name="local_adb_instructions">用手机扫描二维码。然后在电视上打开「无线调试 → 使用配对码配对设备」，保持配对码窗口开启，在手机输入六位数字。端口会自动查找。</string>
     <string name="local_adb_open_settings">打开 Android 开发者设置</string>

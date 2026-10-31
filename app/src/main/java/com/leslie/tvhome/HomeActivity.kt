@@ -1226,6 +1226,9 @@ class HomeActivity : Activity(), TileAdapter.Listener {
                 else if (android.os.Build.VERSION.SDK_INT >= 30)
                     showSheet(Sheet(root).title(I18n.text(R.string.local_adb_title))
                         .message(I18n.text(R.string.local_adb_pair_required))
+                        .button(I18n.text(R.string.local_adb_open_settings)) {
+                            startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+                        }
                         .button(I18n.text(R.string.local_adb_pair_option)) {
                             startActivity(android.content.Intent(this, LocalAdbSetupActivity::class.java))
                         }

@@ -418,6 +418,9 @@ class SettingsActivity : Activity() {
                             .setPositiveButton(R.string.local_adb_pair_option) { _, _ ->
                                 startActivity(Intent(this, LocalAdbSetupActivity::class.java))
                             }
+                            .setNeutralButton(R.string.local_adb_open_settings) { _, _ ->
+                                startActivity(Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+                            }
                             .setNegativeButton(R.string.i18n_controlcenter_031, null)
                             .show()
                 }
