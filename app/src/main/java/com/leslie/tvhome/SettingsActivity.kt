@@ -412,7 +412,14 @@ class SettingsActivity : Activity() {
                     if (isDestroyed) return@runOnUiThread
                     value.text = I18n.text(if (ok) R.string.i18n_settingsactivity_120 else R.string.i18n_settingsactivity_118)
                     if (!ok && android.os.Build.VERSION.SDK_INT >= 30)
-                        startActivity(Intent(this, LocalAdbSetupActivity::class.java))
+                        android.app.AlertDialog.Builder(this)
+                            .setTitle(R.string.local_adb_title)
+                            .setMessage(R.string.local_adb_pair_required)
+                            .setPositiveButton(R.string.local_adb_pair_option) { _, _ ->
+                                startActivity(Intent(this, LocalAdbSetupActivity::class.java))
+                            }
+                            .setNegativeButton(R.string.i18n_controlcenter_031, null)
+                            .show()
                 }
             }.start()
         }

@@ -1223,7 +1223,12 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             main.post {
                 if (ok) Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_055), Toast.LENGTH_LONG).show()
                 else if (android.os.Build.VERSION.SDK_INT >= 30)
-                    startActivity(android.content.Intent(this, LocalAdbSetupActivity::class.java))
+                    showSheet(Sheet(root).title(I18n.text(R.string.local_adb_title))
+                        .message(I18n.text(R.string.local_adb_pair_required))
+                        .button(I18n.text(R.string.local_adb_pair_option)) {
+                            startActivity(android.content.Intent(this, LocalAdbSetupActivity::class.java))
+                        }
+                        .button(I18n.text(R.string.i18n_controlcenter_031)) {})
                 else Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_056), Toast.LENGTH_LONG).show()
                 control.refresh()
             }
