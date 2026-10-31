@@ -16,7 +16,7 @@
     <string name="i18n_controlcenter_014" formatted="false">訊號來源</string>
     <string name="i18n_controlcenter_015" formatted="false">亮度</string>
     <string name="i18n_controlcenter_016" formatted="false">音量</string>
-    <string name="i18n_controlcenter_017" formatted="false">尚未授權本機偵錯，無法使用關機、待機與清理記憶體功能</string>
+    <string name="i18n_controlcenter_017" formatted="false">關機、待機與深度清理需另行授權</string>
     <string name="i18n_controlcenter_018" formatted="false">有線網路</string>
     <string name="i18n_controlcenter_019" formatted="false">未連線</string>
     <string name="i18n_controlcenter_020" formatted="false">已連線</string>
@@ -32,4 +32,6 @@
     <string name="i18n_controlcenter_030" formatted="false">開始</string>
     <string name="i18n_controlcenter_031" formatted="false">取消</string>
     <string name="i18n_controlcenter_032" formatted="false">取消</string>
+    <string name="i18n_controlcenter_033" formatted="false">這台裝置沒有提供 HDMI 輸入。外接 Chromecast 無法列出電視機身的插孔；讀取訊號來源不需要本機偵錯。</string>
+    <string name="i18n_controlcenter_034" formatted="false">關機與深度清理需另行配對 Android 無線偵錯；訊號來源、音量與網路資訊不需要。</string>
 </resources>

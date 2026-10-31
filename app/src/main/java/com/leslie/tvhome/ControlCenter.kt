@@ -202,6 +202,8 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
             LinearLayout.LayoutParams(-1, cell).apply { topMargin = gap })
         top.addView(right, LinearLayout.LayoutParams(0, -2, 1f))
         panel.addView(top)
+        // Keep privileged-action status beside the power controls, not below Input.
+        panel.addView(status, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(10) })
 
         val utilities = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL; clipChildren = false }
         fun utility(label: String, icon: Int, action: () -> Unit): GlassButton =
@@ -246,7 +248,6 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
         panel.addView(volume, LinearLayout.LayoutParams(-1, ctx.dp(38)).apply { topMargin = gap })
         inputModule = GlassButton(I18n.text(R.string.i18n_controlcenter_014), R.drawable.ic_input, Shape.CAPSULE) { pickInput() }
         panel.addView(inputModule, LinearLayout.LayoutParams(-1, cell).apply { topMargin = gap })
-        panel.addView(status, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(10) })
         // The host clips the panel to its bounds; the padding is room for focused controls to grow into.
         val room = ctx.dp(16)
         panel.setPadding(room, room, room, room)
@@ -833,7 +834,27 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
     }
 
     private fun pickInput() {
-        if (inputs.isEmpty()) return
+        if (inputs.isEmpty()) {
+            // The Control Center may be clicked before its background refresh completes.
+            io.execute {
+                val latest = tv.inputs()
+                host.post {
+                    if (destroyed || !isOpen) return@post
+                    inputs = latest
+                    if (latest.isEmpty()) {
+                        close()
+                        home.showSheet(Sheet(host).title(I18n.text(R.string.i18n_controlcenter_021))
+                            .message(I18n.text(R.string.i18n_controlcenter_033))
+                            .button(I18n.text(R.string.i18n_controlcenter_026)) {})
+                    } else showInputList()
+                }
+            }
+            return
+        }
+        showInputList()
+    }
+
+    private fun showInputList() {
         // The list replaces the panel instead of stacking on top of it.
         close()
         val sheet = Sheet(host).title(I18n.text(R.string.i18n_controlcenter_021)).message(null)
@@ -870,8 +891,10 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
 
     private fun needAdb(action: () -> Unit) {
         if (prefs.adbAuthorized) action() else home.showSheet(Sheet(host).title(I18n.text(R.string.i18n_controlcenter_028))
-            .message(I18n.text(R.string.i18n_controlcenter_029))
-            .button(I18n.text(R.string.i18n_controlcenter_030)) { home.authorizeAdb() }
+            .message(I18n.text(if (android.os.Build.VERSION.SDK_INT >= 30)
+                R.string.i18n_controlcenter_034 else R.string.i18n_controlcenter_029))
+            .button(I18n.text(if (android.os.Build.VERSION.SDK_INT >= 30)
+                R.string.i18n_settingsactivity_118 else R.string.i18n_controlcenter_030)) { home.authorizeAdb() }
             .button(I18n.text(R.string.i18n_controlcenter_031)) {})
     }
 
