@@ -1221,6 +1221,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         io.execute {
             val ok = LocalAdb.authorize(this)
             main.post {
+                if (isFinishing || isDestroyed) return@post
                 if (ok) Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_055), Toast.LENGTH_LONG).show()
                 else if (android.os.Build.VERSION.SDK_INT >= 30)
                     showSheet(Sheet(root).title(I18n.text(R.string.local_adb_title))

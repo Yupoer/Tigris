@@ -32,6 +32,7 @@
     <string name="i18n_controlcenter_030" formatted="false">Start</string>
     <string name="i18n_controlcenter_031" formatted="false">Cancel</string>
     <string name="i18n_controlcenter_032" formatted="false">Cancel</string>
-    <string name="i18n_controlcenter_033" formatted="false">This device reports no HDMI inputs. An external Chromecast cannot list ports on the TV it is plugged into. Input information does not require local debugging.</string>
+    <string name="i18n_controlcenter_033" formatted="false">This device reports no HDMI inputs. When Tigris runs on an external Chromecast, it cannot list the TV's ports. Input information does not require local debugging.</string>
     <string name="i18n_controlcenter_034" formatted="false">Power and deep cleanup require Android Wireless debugging pairing on this device. Input, volume and network information do not.</string>
+    <string name="i18n_controlcenter_035" formatted="false">Checking authorization…</string>
 </resources>

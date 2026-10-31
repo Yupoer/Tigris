@@ -51,6 +51,7 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
     private val surfaces = ArrayList<GlassSurface>()
     private var destroyed = false
     private var refreshing = false
+    private var adbChecking = false
 
     // ---- the blurred picture of the home screen behind the controls ----
     private val sampleScale = 0.25f
@@ -890,12 +891,29 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
     }
 
     private fun needAdb(action: () -> Unit) {
-        if (prefs.adbAuthorized) action() else home.showSheet(Sheet(host).title(I18n.text(R.string.i18n_controlcenter_028))
-            .message(I18n.text(if (android.os.Build.VERSION.SDK_INT >= 30)
-                R.string.i18n_controlcenter_034 else R.string.i18n_controlcenter_029))
-            .button(I18n.text(if (android.os.Build.VERSION.SDK_INT >= 30)
-                R.string.i18n_settingsactivity_118 else R.string.i18n_controlcenter_030)) { home.authorizeAdb() }
-            .button(I18n.text(R.string.i18n_controlcenter_031)) {})
+        if (adbChecking) return
+        adbChecking = true
+        status.text = I18n.text(R.string.i18n_controlcenter_035)
+        status.visibility = View.VISIBLE
+        Thread {
+            val authorized = runCatching { LocalAdb.authorize(ctx.applicationContext) }.getOrDefault(false)
+            host.post {
+                adbChecking = false
+                if (destroyed || !isOpen) return@post
+                if (authorized) {
+                    status.visibility = View.GONE
+                    action()
+                } else {
+                    refresh()
+                    home.showSheet(Sheet(host).title(I18n.text(R.string.i18n_controlcenter_028))
+                        .message(I18n.text(if (android.os.Build.VERSION.SDK_INT >= 30)
+                            R.string.i18n_controlcenter_034 else R.string.i18n_controlcenter_029))
+                        .button(I18n.text(if (android.os.Build.VERSION.SDK_INT >= 30)
+                            R.string.i18n_settingsactivity_118 else R.string.i18n_controlcenter_030)) { home.authorizeAdb() }
+                        .button(I18n.text(R.string.i18n_controlcenter_031)) {})
+                }
+            }
+        }.start()
     }
 
     private fun confirm(title: String, msg: String, action: () -> Unit) = needAdb {
