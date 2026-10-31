@@ -227,6 +227,8 @@ class SettingsActivity : Activity() {
         }) {
             prefs.focusStyle = next(prefs.focusStyle, Prefs.FOCUS_TVOS, Prefs.FOCUS_SIMPLE)
         }
+        row(I18n.text(R.string.navigation_sound_title), I18n.text(R.string.navigation_sound_help),
+            { onOff(prefs.navigationSound) }) { prefs.navigationSound = !prefs.navigationSound }
         row(I18n.text(R.string.i18n_settingsactivity_035), I18n.text(R.string.i18n_settingsactivity_036) +
             I18n.text(R.string.i18n_settingsactivity_037), {
             auto(prefs.ccStyle, prefs.ccGlass(this), I18n.text(R.string.i18n_settingsactivity_038), I18n.text(R.string.i18n_settingsactivity_039))

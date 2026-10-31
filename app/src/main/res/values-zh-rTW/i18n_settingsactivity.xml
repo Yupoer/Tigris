@@ -31,7 +31,9 @@
     <string name="i18n_settingsactivity_029" formatted="false">顯示右上角頭像</string>
     <string name="i18n_settingsactivity_030" formatted="false">按右上角的頭像即可開啟主畫面設定。</string>
     <string name="i18n_settingsactivity_031" formatted="false">焦點動畫</string>
-    <string name="i18n_settingsactivity_032" formatted="false">tvOS：選取 App 時放大並隨方向微微傾斜，表面會有光澤滑過。簡約：只放大。</string>
+    <string name="i18n_settingsactivity_032" formatted="false">選取 App 時放大，玻璃邊緣折射並隨方向流動反光。tvOS 還會微微傾斜、移動圖案；簡約則保持平面。</string>
+    <string name="navigation_sound_title">切換音效</string>
+    <string name="navigation_sound_help">切換 App 或移動排序時播放輕提示音，遵循電視的系統音效設定。</string>
     <string name="i18n_settingsactivity_033" formatted="false">\n「自動」會在效能較低的電視上使用簡約樣式。</string>
     <string name="i18n_settingsactivity_034" formatted="false">簡約</string>
     <string name="i18n_settingsactivity_035" formatted="false">控制中心樣式</string>
