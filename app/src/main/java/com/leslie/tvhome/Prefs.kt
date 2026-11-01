@@ -190,12 +190,16 @@ class Prefs(ctx: Context) {
     /** The Control Center uses floating glass controls rather than one plain panel. */
     fun ccGlass(ctx: Context) = when (ccStyle) { CC_GLASS -> true; CC_PANEL -> false; else -> !Device.isLowEnd(ctx) }
 
-    /** [AUTO], [FOCUS_TVOS] (tilt and a gliding highlight) or [FOCUS_SIMPLE] (scale and shadow only). */
+    /** Both styles have a glass rim; [FOCUS_TVOS] also adds tilt and parallax. */
     var focusStyle: String
         get() = sp.getString("focus_style", AUTO)!!
         set(v) = sp.edit().putString("focus_style", v).apply()
 
     fun focusTvos(ctx: Context) = when (focusStyle) { FOCUS_TVOS -> true; FOCUS_SIMPLE -> false; else -> !Device.isLowEnd(ctx) }
+
+    var navigationSound: Boolean
+        get() = sp.getBoolean("navigation_sound", true)
+        set(v) = sp.edit().putBoolean("navigation_sound", v).apply()
 
     /** When the boot animation plays: [INTRO_OFF], [INTRO_BOOT] (after a cold boot) or [INTRO_WAKE] (also on wake from standby). */
     var intro: String

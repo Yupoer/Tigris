@@ -31,7 +31,9 @@
     <string name="i18n_settingsactivity_029" formatted="false">显示右上角头像</string>
     <string name="i18n_settingsactivity_030" formatted="false">右上角的头像，按它可以打开主屏幕设置。</string>
     <string name="i18n_settingsactivity_031" formatted="false">聚焦动画</string>
-    <string name="i18n_settingsactivity_032" formatted="false">tvOS：选中的 App 放大、跟着方向倾斜，表面有一道光。简洁：只放大。</string>
+    <string name="i18n_settingsactivity_032" formatted="false">选中应用时放大，玻璃边缘折射并随方向流动反光。tvOS 还会微微倾斜、移动图案；简约则保持平面。</string>
+    <string name="navigation_sound_title">切换音效</string>
+    <string name="navigation_sound_help">切换应用或移动排序时播放轻提示音，遵循电视的系统音效设置。</string>
     <string name="i18n_settingsactivity_033" formatted="false">\n“自动”在配置较低的电视上用简洁。</string>
     <string name="i18n_settingsactivity_034" formatted="false">简洁</string>
     <string name="i18n_settingsactivity_035" formatted="false">控制中心样式</string>

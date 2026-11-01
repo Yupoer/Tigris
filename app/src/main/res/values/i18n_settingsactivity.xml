@@ -31,7 +31,9 @@
     <string name="i18n_settingsactivity_029" formatted="false">Show avatar in the top-right corner</string>
     <string name="i18n_settingsactivity_030" formatted="false">Press the avatar in the top-right corner to open Home Screen Settings.</string>
     <string name="i18n_settingsactivity_031" formatted="false">Focus animation</string>
-    <string name="i18n_settingsactivity_032" formatted="false">tvOS: the selected app grows, tilts with the direction and catches a highlight. Simple: it only grows.</string>
+    <string name="i18n_settingsactivity_032" formatted="false">The selected app grows with a refracting glass edge and moving light. tvOS also adds directional tilt and parallax; Simple keeps the card flat.</string>
+    <string name="navigation_sound_title">Navigation sound</string>
+    <string name="navigation_sound_help">A soft tick when switching apps or moving them into a new position. Follows the TV’s system sound setting.</string>
     <string name="i18n_settingsactivity_033" formatted="false">\n“Auto” uses Simple on lower-end TVs.</string>
     <string name="i18n_settingsactivity_034" formatted="false">Simple</string>
     <string name="i18n_settingsactivity_035" formatted="false">Control Center style</string>

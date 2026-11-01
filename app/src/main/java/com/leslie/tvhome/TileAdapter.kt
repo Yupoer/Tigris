@@ -3,6 +3,7 @@ package com.leslie.tvhome
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.view.Gravity
 import android.view.KeyEvent
@@ -14,6 +15,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import java.util.concurrent.Executors
+import kotlin.math.abs
+import kotlin.math.sin
 
 /** One app on the grid: a rounded 16:9 tile with the name under it when focused. */
 class TileCell(ctx: Context, val tileW: Int, val tileH: Int) : FrameLayout(ctx) {
@@ -37,14 +40,7 @@ class TileCell(ctx: Context, val tileW: Int, val tileH: Int) : FrameLayout(ctx) 
     }
     private val shadowPad = dp(SHADOW_PAD)
     private val focusTween = Tween()
-    /** The light glancing off a focused tile; only drawn while focused. */
-    private val sheen = View(ctx).apply {
-        background = android.graphics.drawable.GradientDrawable().apply {
-            gradientType = android.graphics.drawable.GradientDrawable.RADIAL_GRADIENT
-            colors = intArrayOf(Color.argb(78, 255, 255, 255), Color.argb(26, 255, 255, 255), Color.TRANSPARENT)
-            gradientRadius = tileW * 0.62f
-            setGradientCenter(0.5f, 0.5f)
-        }
+    private val glass = TileGlass(ctx).apply {
         alpha = 0f
         visibility = INVISIBLE
     }
@@ -59,7 +55,7 @@ class TileCell(ctx: Context, val tileW: Int, val tileH: Int) : FrameLayout(ctx) 
         shadow.translationX = -shadowPad.toFloat()
         shadow.translationY = -shadowPad.toFloat()
         card.addView(image, LayoutParams(tileW, tileH))
-        card.addView(sheen, LayoutParams(tileW, tileH))
+        card.addView(glass, LayoutParams(tileW, tileH))
         card.clipRounded(dp(11).toFloat())
         addView(card, LayoutParams(tileW, tileH))
         // The name hangs below the tile without taking layout space, so rows keep an exact pitch.
@@ -69,18 +65,19 @@ class TileCell(ctx: Context, val tileW: Int, val tileH: Int) : FrameLayout(ctx) 
 
     /**
      * tvOS focus: the tile lifts towards the viewer (larger, a deep shadow under it), tilting in
-     * from the direction of travel; with [tvos] a soft highlight glides across it as it settles,
-     * light catching a glass surface. Driven by [Tween], so it plays even with animations off.
+     * from the direction of travel. The refracting rim and moving light are inexpensive Canvas
+     * shaders; [tvos] adds tilt/parallax. Every retarget starts at the current rendered values.
      */
-    fun setFocusedLook(f: Boolean, fromDx: Int, fromDy: Int, showLabel: Boolean = true, tvos: Boolean = true) {
-        val s0 = card.scaleX
+    fun setFocusedLook(f: Boolean, fromDx: Int, fromDy: Int, showLabel: Boolean = true, tvos: Boolean = true, animate: Boolean = true) {
+        val sx0 = card.scaleX
+        val sy0 = card.scaleY
         val s1 = if (f) FOCUS_SCALE else 1f
         // Draw the lifted tile (and its shadow) above its neighbours.
         translationZ = if (f) 1f else 0f
         card.cameraDistance = tileW * 14f
         val tilt = f && tvos && (fromDx != 0 || fromDy != 0)
-        val rx0 = if (tilt) -fromDy * 6f else card.rotationX
-        val ry0 = if (tilt) fromDx * 6f else card.rotationY
+        val rx0 = card.rotationX
+        val ry0 = card.rotationY
         val z1 = if (f) dp(4).toFloat() else 0f
         val z0 = card.translationZ
         val sh0 = shadow.alpha
@@ -89,36 +86,61 @@ class TileCell(ctx: Context, val tileW: Int, val tileH: Int) : FrameLayout(ctx) 
         val shy1 = -shadowPad + if (f) dp(18).toFloat() else 0f
         val l0 = label.alpha
         val l1 = if (f && showLabel) 1f else 0f
-        val g0 = sheen.alpha
-        val g1 = if (f && tvos) 1f else 0f
-        if (f && tvos) {
-            // The highlight enters from the side the focus came from and comes to rest near the top.
-            sheen.translationX = -fromDx * tileW * 0.45f
-            sheen.translationY = -tileH * 0.25f - fromDy * tileH * 0.3f
-        }
-        val gx0 = sheen.translationX
-        val gy0 = sheen.translationY
-        sheen.visibility = if (f && tvos || g0 > 0f) VISIBLE else INVISIBLE
-        focusTween.start(if (f) 260 else 170, if (f) Motion.spring else Motion.ease, end = {
-            if (!f) sheen.visibility = INVISIBLE
-        }) { p ->
-            val e = p.coerceAtMost(1f)
-            card.scaleX = lerp(s0, s1, p); card.scaleY = card.scaleX
-            card.rotationX = lerp(rx0, 0f, e)
-            card.rotationY = lerp(ry0, 0f, e)
+        val g0 = glass.alpha
+        val g1 = if (f) 1f else 0f
+        val entering = f && g0 < 0.01f
+        val gx0 = if (entering) -fromDx.toFloat() else glass.offsetX
+        val gy0 = if (entering) -fromDy.toFloat() else glass.offsetY
+        val energy0 = if (f && (fromDx != 0 || fromDy != 0)) 1f else glass.energy
+        val imageX0 = image.translationX
+        val imageY0 = image.translationY
+        val imageScale0 = image.scaleX
+        glass.visibility = if (f || g0 > 0f) VISIBLE else INVISIBLE
+        val update: (Float) -> Unit = { e ->
+            val wave = if (f && (fromDx != 0 || fromDy != 0)) sin(e * Math.PI).toFloat() else 0f
+            val impulse = if (tilt) wave else 0f
+            card.scaleX = lerp(sx0, s1, e) + abs(fromDx) * impulse * 0.014f
+            card.scaleY = lerp(sy0, s1, e) + abs(fromDy) * impulse * 0.014f
+            card.rotationX = lerp(rx0, 0f, e) - fromDy * impulse * 4.5f
+            card.rotationY = lerp(ry0, 0f, e) + fromDx * impulse * 4.5f
             card.translationZ = lerp(z0, z1, e)
             shadow.alpha = lerp(sh0, sh1, e)
-            shadow.scaleX = card.scaleX; shadow.scaleY = card.scaleX
+            shadow.scaleX = card.scaleX; shadow.scaleY = card.scaleY
             shadow.translationY = lerp(shy0, shy1, e)
             label.alpha = lerp(l0, l1, e)
-            sheen.alpha = lerp(g0, g1, e)
-            if (f) { sheen.translationX = lerp(gx0, 0f, e); sheen.translationY = lerp(gy0, -tileH * 0.25f, e) }
+            label.translationY = tileH + dp(17) + tileH * (card.scaleY - 1f) / 2f
+            glass.alpha = lerp(g0, g1, e)
+            glass.motion(lerp(gx0, 0f, e) - fromDx * wave * 0.4f,
+                lerp(gy0, 0f, e) - fromDy * wave * 0.4f, energy0 * (1f - e))
+            image.scaleX = lerp(imageScale0, if (f && tvos) 1.025f else 1f, e)
+            image.scaleY = image.scaleX
+            image.translationX = lerp(imageX0, 0f, e) - fromDx * impulse * dp(2)
+            image.translationY = lerp(imageY0, 0f, e) - fromDy * impulse * dp(2)
         }
+        if (animate) focusTween.start(if (f) 300 else 190, Motion.ease, end = {
+            if (!f) glass.visibility = INVISIBLE
+        }, update = update) else {
+            focusTween.cancel()
+            update(1f)
+            if (!f) glass.visibility = INVISIBLE
+        }
+    }
+
+    fun setArtwork(bitmap: Bitmap?) {
+        image.setImageBitmap(bitmap)
+        glass.artwork(bitmap)
+    }
+
+    fun recycle() {
+        setJiggle(false)
+        setFocusedLook(false, 0, 0, animate = false)
+        setArtwork(null)
+        tag = null
     }
 
     companion object {
         const val SHADOW_PAD = 30
-        const val FOCUS_SCALE = 1.12f
+        const val FOCUS_SCALE = 1.12f * 1.1f
         private var shared: android.graphics.Bitmap? = null
 
         /** One shadow bitmap serves every tile. */
@@ -225,17 +247,23 @@ class TileAdapter(
         cell.label.text = app.label
         val same = cell.tag == app.pkg
         cell.tag = app.pkg
+        if (!same) cell.setFocusedLook(cell.hasFocus(), 0, 0, showLabel = position >= dockCount, tvos = tvosFocus, animate = false)
         cell.setJiggle(app.pkg == movingPkg)
         val cached = repo.cachedTile(app.pkg)
         if (cached != null) {
-            cell.image.setImageBitmap(cached)
+            cell.setArtwork(cached)
         } else {
             // Rebinding the same app keeps its old picture until the new one is ready.
-            if (!same) cell.image.setImageDrawable(null)
+            if (!same) cell.setArtwork(null)
             loader.execute {
                 val bmp = repo.tile(app)
-                cell.post { if (cell.tag == app.pkg) cell.image.setImageBitmap(bmp) }
+                cell.post { if (cell.tag == app.pkg) cell.setArtwork(bmp) }
             }
         }
+    }
+
+    override fun onViewRecycled(holder: VH) {
+        holder.cell.recycle()
+        super.onViewRecycled(holder)
     }
 }

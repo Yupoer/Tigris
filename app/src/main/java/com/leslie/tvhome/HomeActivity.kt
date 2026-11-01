@@ -104,6 +104,9 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private var expandedRowY = 0
 
     private var focusedPos = 0
+    private var focusRequest = 0L
+    private var navigationSoundTarget: String? = null
+    private val focusSound by lazy { FocusSound(this) }
     private var firstFocus = true
     /** Grid scroll position; RecyclerView's own estimate is unreliable for grids. */
     private var scrollY = 0
@@ -300,6 +303,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         unregisterReceiver(pkgReceiver)
         main.removeCallbacksAndMessages(null)
         control.destroy()
+        focusSound.release()
         intro?.finish()
         runCatching { unregisterReceiver(screenOn) }
         io.shutdown()
@@ -332,8 +336,8 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         firstRowY = (sh * 0.744f).toInt()          // 804 px; next row just peeks above the bottom edge
         expandedRowY = (sh * 0.36f).toInt()
 
-        // The dock hugs the first row: a focused tile (scaled 1.12) nearly touches its edges.
-        val pad = dp(15)
+        // Leave breathing room around the larger selected card, including the first/last columns.
+        val pad = maxOf(dp(15), (tileW * (TileCell.FOCUS_SCALE - 1f) / 2f).toInt() + dp(6))
         dockRect.set(side - pad, firstRowY - pad, sw - side + pad, firstRowY + tileH + pad)
         dockRadius = dp(11) + pad.toFloat()
         buildShelf(side)
@@ -416,9 +420,19 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         listOf(netButton, ccButton, avatar).forEach { b ->
             b.setOnKeyListener { _, code, e ->
                 if (e.action != KeyEvent.ACTION_DOWN) false else when {
-                    code == KeyEvent.KEYCODE_DPAD_DOWN -> { focusAt(focusedPos); true }
-                    code == KeyEvent.KEYCODE_DPAD_RIGHT && b == ccButton && avatar.visibility == View.VISIBLE -> { avatar.requestFocus(); true }
-                    code == KeyEvent.KEYCODE_DPAD_LEFT && b == avatar -> { ccButton.requestFocus(); true }
+                    code == KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        adapter.lastDx = 0; adapter.lastDy = 1
+                        focusAt(focusedPos, navigation = true)
+                        true
+                    }
+                    code == KeyEvent.KEYCODE_DPAD_RIGHT && b == ccButton && avatar.visibility == View.VISIBLE -> {
+                        if (avatar.requestFocus()) focusSound.play(b, 1, 0)
+                        true
+                    }
+                    code == KeyEvent.KEYCODE_DPAD_LEFT && b == avatar -> {
+                        if (ccButton.requestFocus()) focusSound.play(b, -1, 0)
+                        true
+                    }
                     else -> false
                 }
             }
@@ -805,13 +819,17 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         return firstRowY + (p / cols) * rowPitch - lm.getDecoratedTop(child)
     }
 
-    private fun focusAt(pos: Int) {
+    private fun focusAt(pos: Int, navigation: Boolean = false) {
         if (adapter.itemCount == 0) return
+        val request = ++focusRequest
         val p = pos.coerceIn(0, adapter.itemCount - 1)
+        navigationSoundTarget = if (navigation) adapter.apps[p].pkg else null
         val vh = grid.findViewHolderForAdapterPosition(p)
         if (vh != null) vh.itemView.requestFocus() else {
             grid.scrollToPosition(p)
-            grid.post { grid.findViewHolderForAdapterPosition(p)?.itemView?.requestFocus() }
+            grid.post {
+                if (request == focusRequest) grid.findViewHolderForAdapterPosition(p)?.itemView?.requestFocus()
+            }
         }
     }
 
@@ -820,6 +838,9 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     override fun onTileFocused(pos: Int, cell: TileCell) {
         focusedPos = pos
         val pkg = adapter.apps.getOrNull(pos)?.pkg
+        if (navigationSoundTarget != null && navigationSoundTarget == pkg)
+            focusSound.play(cell, adapter.lastDx, adapter.lastDy)
+        navigationSoundTarget = null
         main.removeCallbacks(shelfShow)
         if (pkg == YouTubeChannels.PACKAGE &&
             checkSelfPermission("android.permission.READ_TV_LISTINGS") != PackageManager.PERMISSION_GRANTED &&
@@ -1035,25 +1056,26 @@ class HomeActivity : Activity(), TileAdapter.Listener {
                 val to = target.coerceIn(0, n - 1)
                 adapter.move(pos, to)
                 moving = to
+                focusedPos = to
+                cell.setFocusedLook(true, dx, dy, showLabel = to >= cols, tvos = adapter.tvosFocus)
+                focusSound.play(cell, dx, dy)
                 grid.post { focusAt(to) }
             } else Motion.bump(cell.card, dx, dy)
             return true
         }
         if (dy < 0 && pos < cols) {
             // Up from the first row reaches the buttons in the top-right corner.
-            ccButton.requestFocus()
+            if (ccButton.requestFocus()) focusSound.play(cell, dx, dy)
             return true
         }
         if (atEdge) {
             Motion.bump(cell.card, dx, dy)
             return true
         }
-        if (dy > 0 && target >= n) {
-            // Partial last row: drop to its last tile like tvOS does.
-            focusAt(n - 1)
-            return true
-        }
-        return false
+        // Consume each grid move so the system does not add a second navigation sound.
+        // A partial last row drops to its final tile.
+        focusAt(target.coerceIn(0, n - 1), navigation = true)
+        return true
     }
 
     private fun startMove(pos: Int) {
@@ -1161,6 +1183,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         avatar.visibility = if (prefs.showAvatar) View.VISIBLE else View.GONE
         avatar.setPortrait(SettingsActivity.avatarFile(this)?.let { SettingsActivity.decodeIcon(it, 96) })
         adapter.tvosFocus = prefs.focusTvos(this)
+        focusSound.refresh()
         applyClockStyle()
         control.applyStyle()
         if (getSystemService(android.os.PowerManager::class.java).isInteractive) consumeWakeIntro()
