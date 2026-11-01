@@ -63,10 +63,7 @@ Please [open a structured TV compatibility report](https://github.com/lesnolie/T
 #### Incoming structured community reports (unverified)
 
 <!-- TV_COMPATIBILITY_AUTO_START -->
-| TV model | Android | Tigris / APK | Installation result | Issue state | Source |
-|---|---|---|---|---|---|
-| 创维酷开 85P3DMAX | Android 11 | 2.0.2 / Custom fork | Installed and launched (reported) | Open | [#15](https://github.com/lesnolie/Tigris/issues/15) |
-| 雷鸟 75S545C | Android 9 | V2.0.2 / Guard | Installed and launched (reported) | Open | [#14](https://github.com/lesnolie/Tigris/issues/14) |
+No structured community reports yet. [Submit a report](https://github.com/Yupoer/Tigris/issues/new/choose).
 <!-- TV_COMPATIBILITY_AUTO_END -->
 
 ## Install with an AI coding agent

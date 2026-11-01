@@ -51,6 +51,7 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
     private val surfaces = ArrayList<GlassSurface>()
     private var destroyed = false
     private var refreshing = false
+    private var adbChecking = false
 
     // ---- the blurred picture of the home screen behind the controls ----
     private val sampleScale = 0.25f
@@ -202,6 +203,8 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
             LinearLayout.LayoutParams(-1, cell).apply { topMargin = gap })
         top.addView(right, LinearLayout.LayoutParams(0, -2, 1f))
         panel.addView(top)
+        // Keep privileged-action status beside the power controls, not below Input.
+        panel.addView(status, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(10) })
 
         val utilities = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL; clipChildren = false }
         fun utility(label: String, icon: Int, action: () -> Unit): GlassButton =
@@ -246,7 +249,6 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
         panel.addView(volume, LinearLayout.LayoutParams(-1, ctx.dp(38)).apply { topMargin = gap })
         inputModule = GlassButton(I18n.text(R.string.i18n_controlcenter_014), R.drawable.ic_input, Shape.CAPSULE) { pickInput() }
         panel.addView(inputModule, LinearLayout.LayoutParams(-1, cell).apply { topMargin = gap })
-        panel.addView(status, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(10) })
         // The host clips the panel to its bounds; the padding is room for focused controls to grow into.
         val room = ctx.dp(16)
         panel.setPadding(room, room, room, room)
@@ -833,7 +835,27 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
     }
 
     private fun pickInput() {
-        if (inputs.isEmpty()) return
+        if (inputs.isEmpty()) {
+            // The Control Center may be clicked before its background refresh completes.
+            io.execute {
+                val latest = tv.inputs()
+                host.post {
+                    if (destroyed || !isOpen) return@post
+                    inputs = latest
+                    if (latest.isEmpty()) {
+                        close()
+                        home.showSheet(Sheet(host).title(I18n.text(R.string.i18n_controlcenter_021))
+                            .message(I18n.text(R.string.i18n_controlcenter_033))
+                            .button(I18n.text(R.string.i18n_controlcenter_026)) {})
+                    } else showInputList()
+                }
+            }
+            return
+        }
+        showInputList()
+    }
+
+    private fun showInputList() {
         // The list replaces the panel instead of stacking on top of it.
         close()
         val sheet = Sheet(host).title(I18n.text(R.string.i18n_controlcenter_021)).message(null)
@@ -869,10 +891,31 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
     }
 
     private fun needAdb(action: () -> Unit) {
-        if (prefs.adbAuthorized) action() else home.showSheet(Sheet(host).title(I18n.text(R.string.i18n_controlcenter_028))
-            .message(I18n.text(R.string.i18n_controlcenter_029))
-            .button(I18n.text(R.string.i18n_controlcenter_030)) { home.authorizeAdb() }
-            .button(I18n.text(R.string.i18n_controlcenter_031)) {})
+        if (adbChecking) return
+        adbChecking = true
+        status.text = I18n.text(R.string.i18n_controlcenter_035)
+        status.visibility = View.VISIBLE
+        Thread {
+            val authorized = runCatching { LocalAdb.authorize(ctx.applicationContext) }.getOrDefault(false)
+            host.post {
+                adbChecking = false
+                if (destroyed || !isOpen) return@post
+                if (authorized) {
+                    status.visibility = View.GONE
+                    action()
+                } else {
+                    refresh()
+                    val modern = android.os.Build.VERSION.SDK_INT >= 30
+                    val sheet = Sheet(host).title(I18n.text(R.string.i18n_controlcenter_028))
+                        .message(I18n.text(if (modern) R.string.i18n_controlcenter_034 else R.string.i18n_controlcenter_029))
+                    if (modern) sheet.button(I18n.text(R.string.local_adb_open_settings)) {
+                        runCatching { ctx.startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)) }
+                    } else sheet.button(I18n.text(R.string.i18n_controlcenter_030)) { home.authorizeAdb() }
+                    sheet.button(I18n.text(R.string.i18n_controlcenter_031)) {}
+                    home.showSheet(sheet)
+                }
+            }
+        }.start()
     }
 
     private fun confirm(title: String, msg: String, action: () -> Unit) = needAdb {

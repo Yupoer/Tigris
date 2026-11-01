@@ -14,7 +14,6 @@ else
   while IFS= read -r endpoint; do
     [[ -n "$endpoint" ]] && candidates+=("$endpoint")
   done < <(adb mdns services | awk -v ip="$TV" '$0 ~ /_adb-tls-connect\._tcp/ { split($NF, address, ":"); if (address[1] == ip) print $NF }')
-  candidates+=("$TV:5555")
 fi
 
 for endpoint in "${candidates[@]}"; do
@@ -25,5 +24,5 @@ for endpoint in "${candidates[@]}"; do
   fi
 done
 
-echo "Could not connect to $TV. Keep Wireless debugging enabled; pair this computer again only if Android revoked pairing." >&2
+echo "Could not connect to $TV. Keep Wireless debugging enabled; pair this computer again only if Android revoked pairing. Older TVs with a legacy port must pass TV=IP:PORT explicitly." >&2
 exit 1

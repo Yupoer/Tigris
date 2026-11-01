@@ -16,7 +16,7 @@
     <string name="i18n_controlcenter_014" formatted="false">输入源</string>
     <string name="i18n_controlcenter_015" formatted="false">亮度</string>
     <string name="i18n_controlcenter_016" formatted="false">音量</string>
-    <string name="i18n_controlcenter_017" formatted="false">本机调试未授权：关机、待机、彻底清理不可用</string>
+    <string name="i18n_controlcenter_017" formatted="false">关机、待机与深度清理需另行授权</string>
     <string name="i18n_controlcenter_018" formatted="false">有线网络</string>
     <string name="i18n_controlcenter_019" formatted="false">未连接</string>
     <string name="i18n_controlcenter_020" formatted="false">已连接</string>
@@ -32,4 +32,7 @@
     <string name="i18n_controlcenter_030" formatted="false">开始</string>
     <string name="i18n_controlcenter_031" formatted="false">取消</string>
     <string name="i18n_controlcenter_032" formatted="false">取消</string>
+    <string name="i18n_controlcenter_033" formatted="false">这台设备没有提供 HDMI 输入。如果 Tigris 装在外接 Chromecast 上，就无法列出电视机身的接口；读取输入源不需要本机调试。</string>
+    <string name="i18n_controlcenter_034" formatted="false">关机和深度清理需要已开启且已授权的调试连接；若只是关闭，可到 Android 设置开启。输入源等信息不需要。</string>
+    <string name="i18n_controlcenter_035" formatted="false">正在检查授权…</string>
 </resources>

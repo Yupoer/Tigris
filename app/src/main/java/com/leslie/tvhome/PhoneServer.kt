@@ -41,6 +41,20 @@ class PhoneServer private constructor(private val ctx: Context, private val toke
         return runCatching {
             when {
                 path == "/" -> newFixedLengthResponse(Response.Status.OK, "text/html; charset=utf-8", page())
+                path == "/adb" && !post -> html(adbPairPage())
+                path == "/api/adb/pair" && post -> {
+                    val code = form(session)["code"].orEmpty()
+                    val paired = LocalAdbTls.pair(ctx, code)
+                    if (paired) {
+                        prefs.keepWirelessAdb = true
+                        Guard.ensureAdb(ctx)
+                    }
+                    val connected = paired && LocalAdb.shell(ctx, "echo TIGRIS_ADB_OK", 8000)
+                        ?.contains("TIGRIS_ADB_OK") == true
+                    html(adbPairPage(if (connected) "已配對並連線。返回電視即可使用本機偵錯。"
+                        else if (paired) "配對完成，但連線測試未通過。請確認無線偵錯仍開啟，再試一次。"
+                        else "配對失敗。請保持電視的配對碼視窗開啟，確認六位數代碼後重試。"))
+                }
                 path == "/i18n.js" && !post ->
                     newFixedLengthResponse(Response.Status.OK, "application/javascript; charset=utf-8",
                         ctx.assets.open("web/i18n.js").bufferedReader().use { it.readText() })
@@ -50,7 +64,6 @@ class PhoneServer private constructor(private val ctx: Context, private val toke
                     val v = form(session)["id"].orEmpty()
                     if (v in Wallpapers.SOURCES || v in Backgrounds.THEMES) {
                         prefs.background = v
-                        Wallpapers.trimExcept(ctx, v)
                     }
                     json(state())
                 }
@@ -121,6 +134,28 @@ class PhoneServer private constructor(private val ctx: Context, private val toke
 
     private fun page(): String = ctx.assets.open("web/index.html").bufferedReader().use { it.readText() }
         .replace("{{DEVICE}}", Build.MODEL.replace("_", " "))
+
+    private fun html(value: String) =
+        newFixedLengthResponse(Response.Status.OK, "text/html; charset=utf-8", value)
+
+    private fun adbPairPage(message: String = ""): String = """
+        <!doctype html><html lang="zh-TW"><meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Tigris 本機偵錯配對</title>
+        <style>body{font:18px -apple-system,sans-serif;background:#15191f;color:white;
+        max-width:36rem;margin:3rem auto;padding:1rem}input,button{box-sizing:border-box;
+        font:inherit;border:0;border-radius:12px;padding:14px;width:100%;margin-top:12px}
+        button{background:#c7e0ff;color:#14253b}p{line-height:1.5}</style>
+        <h1>本機偵錯配對</h1>
+        <p>在電視開啟「設定 → 系統 → 開發人員選項 → 無線偵錯 → 使用配對碼配對裝置」，
+        保持配對碼視窗開啟，在這裡輸入六位數代碼。通訊埠會自動尋找。</p>
+        <form method="post" action="api/adb/pair">
+        <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"
+        autocomplete="one-time-code" placeholder="六位數配對碼" required>
+        <button type="submit">配對並測試連線</button></form>
+        <p>${message}</p>
+        </html>
+    """.trimIndent()
 
     private fun names(source: String) = JSONArray().apply { Wallpapers(ctx, source).files().forEach { put(it.name) } }
 

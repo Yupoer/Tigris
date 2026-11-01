@@ -11,134 +11,240 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import java.io.File
 import java.util.concurrent.Executors
 
-/**
- * The 壁纸 app: every background as a picture to pick with one press, and beside it the QR code
- * for the phone page ([PhoneServer]), which runs while this is open and for five minutes after so
- * photos still on their way arrive. Changes made on the phone show up here as they happen.
- */
+/** Browse each cached picture inside its category; focus previews it as the full background. */
 class WallpaperActivity : Activity() {
     private val prefs by lazy { Prefs(this) }
     private val main = Handler(Looper.getMainLooper())
-    private val io = Executors.newSingleThreadExecutor()
+    private val downloads = Executors.newSingleThreadExecutor()
+    private val previews = Executors.newSingleThreadExecutor()
+    private val rows = LinkedHashMap<String, LinearLayout>()
     private val cards = LinkedHashMap<String, Card>()
+    private lateinit var backdrop: ImageView
     private lateinit var qr: ImageView
     private lateinit var address: TextView
-    private var counts = ""
+    private var previewVersion = 0
 
-    private inner class Card(val key: String) : LinearLayout(this@WallpaperActivity) {
-        val image = ImageView(context).apply {
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            background = rounded(Color.argb(40, 255, 255, 255), dp(12).toFloat())
-            clipRounded(dp(12).toFloat())
-        }
-        private val frame = FrameLayout(context)
-        private val ring = View(context)
+    private inner class Card(
+        val id: String, val source: String?, val photo: File?, val theme: String?,
+        title: String, thumbnail: Bitmap?, action: () -> Unit,
+    ) : LinearLayout(this@WallpaperActivity) {
         private val check = text(14f, Color.WHITE, bold = true).apply {
             text = "✓"
             gravity = Gravity.CENTER
             background = rounded(Color.rgb(10, 132, 255), dp(11).toFloat())
         }
-        private val empty = text(13f, Color.argb(170, 255, 255, 255)).apply { gravity = Gravity.CENTER }
-        val label = text(14f, Color.argb(200, 255, 255, 255), weight = 500).apply { gravity = Gravity.CENTER }
-
         init {
             orientation = VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
             isFocusable = true
             isClickable = true
             clipChildren = false
-            frame.clipChildren = false
-            frame.addView(image, FrameLayout.LayoutParams(-1, -1))
-            frame.addView(empty, FrameLayout.LayoutParams(-1, -1).apply { setMargins(dp(8), 0, dp(8), 0) })
+            val frame = FrameLayout(context).apply { clipChildren = false }
+            frame.addView(ImageView(context).apply {
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                setImageBitmap(thumbnail)
+                background = rounded(Color.argb(45, 255, 255, 255), dp(12).toFloat())
+                clipRounded(dp(12).toFloat())
+            }, FrameLayout.LayoutParams(-1, -1))
+            val ring = View(context)
             frame.addView(ring, FrameLayout.LayoutParams(-1, -1))
-            frame.addView(check, FrameLayout.LayoutParams(dp(22), dp(22), Gravity.TOP or Gravity.END).apply { setMargins(0, dp(6), dp(6), 0) })
-            addView(frame, LayoutParams(dp(128), dp(72)))
-            addView(label, LayoutParams(-1, -2).apply { topMargin = dp(7) })
-            setOnFocusChangeListener { _, f ->
-                ring.background = if (f) GradientDrawable().apply {
-                    cornerRadius = dp(12).toFloat(); setStroke(dp(3), Color.WHITE)
+            frame.addView(check, FrameLayout.LayoutParams(dp(22), dp(22), Gravity.TOP or Gravity.END).apply {
+                setMargins(0, dp(6), dp(6), 0)
+            })
+            addView(frame, LayoutParams(dp(174), dp(98)))
+            addView(text(14f, Color.WHITE, weight = 500).apply {
+                text = title
+                gravity = Gravity.CENTER
+                maxLines = 1
+            }, LayoutParams(-1, -2).apply { topMargin = dp(7) })
+            setOnFocusChangeListener { _, focused ->
+                ring.background = if (focused) GradientDrawable().apply {
+                    cornerRadius = dp(12).toFloat()
+                    setStroke(dp(3), Color.WHITE)
                 } else null
-                label.setTextColor(if (f) Color.WHITE else Color.argb(200, 255, 255, 255))
-                animate().scaleX(if (f) 1.08f else 1f).scaleY(if (f) 1.08f else 1f)
-                    .translationZ(if (f) dp(10).toFloat() else 0f).setDuration(160).setInterpolator(Motion.ease).start()
+                animate().scaleX(if (focused) 1.07f else 1f).scaleY(if (focused) 1.07f else 1f)
+                    .translationZ(if (focused) dp(10).toFloat() else 0f)
+                    .setDuration(160).setInterpolator(Motion.ease).start()
+                if (focused) preview(photo, theme)
             }
-            setOnClickListener { pick(key) }
+            setOnClickListener { action() }
+            selected()
         }
-
-        fun selected(on: Boolean) { check.visibility = if (on) VISIBLE else GONE }
-        fun emptyText(s: String?) { empty.text = s.orEmpty(); empty.visibility = if (s == null) GONE else VISIBLE }
+        fun selected() {
+            check.visibility = if (theme == prefs.background ||
+                (photo != null && source != null && source == prefs.background &&
+                    Wallpapers(this@WallpaperActivity, source).current()?.name == photo.name)) VISIBLE else GONE
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val grid = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false }
-        val keys = Wallpapers.SOURCES + Backgrounds.THEMES.keys
-        for (row in keys.chunked(4)) {
-            val r = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; clipChildren = false }
-            for (k in row) {
-                val c = Card(k)
-                cards[k] = c
-                r.addView(c, LinearLayout.LayoutParams(dp(128), -2).apply { marginEnd = dp(16) })
-            }
-            grid.addView(r, LinearLayout.LayoutParams(-2, -2).apply { bottomMargin = dp(14) })
+        val root = FrameLayout(this).apply { setBackgroundColor(Color.rgb(15, 20, 30)) }
+        backdrop = ImageView(this).apply { scaleType = ImageView.ScaleType.CENTER_CROP }
+        root.addView(backdrop, FrameLayout.LayoutParams(-1, -1))
+        root.addView(View(this).apply {
+            background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,
+                intArrayOf(Color.argb(220, 0, 0, 0), Color.argb(100, 0, 0, 0)))
+        }, FrameLayout.LayoutParams(-1, -1))
+
+        val categories = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; clipChildren = false }
+        categories.addView(text(29f, bold = true).apply { text = I18n.text(R.string.i18n_wallpaperactivity_001) },
+            LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(18) })
+        for (source in Wallpapers.SOURCES) {
+            categories.addView(text(19f, bold = true).apply { text = Wallpapers.label(source) },
+                LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12); bottomMargin = dp(9) })
+            val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; clipChildren = false }
+            rows[source] = row
+            categories.addView(HorizontalScrollView(this).apply {
+                isHorizontalScrollBarEnabled = false
+                clipChildren = false
+                addView(row)
+            }, LinearLayout.LayoutParams(-1, dp(143)))
+            renderSource(source)
         }
-        val left = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+        categories.addView(text(19f, bold = true).apply { text = I18n.text(R.string.wallpaper_colors) },
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12); bottomMargin = dp(9) })
+        val themes = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; clipChildren = false }
+        for ((key, value) in Backgrounds.THEMES) {
+            addCard(themes, Card("theme:" + key, null, null, key, value.first, Backgrounds.render(key)) {
+                prefs.background = key
+                updateChecks()
+                preview(null, key)
+            })
+        }
+        categories.addView(HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
             clipChildren = false
-            addView(text(30f, bold = true).apply { text = I18n.text(R.string.i18n_wallpaperactivity_001) })
-            addView(text(15f, Color.argb(160, 255, 255, 255)).apply { text = I18n.text(R.string.i18n_wallpaperactivity_002) },
-                LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(8); bottomMargin = dp(22) })
-            addView(grid)
+            addView(themes)
+        }, LinearLayout.LayoutParams(-1, dp(143)))
+
+        val scroll = ScrollView(this).apply {
+            isVerticalScrollBarEnabled = false
+            clipChildren = false
+            addView(categories)
         }
         qr = ImageView(this).apply {
             background = rounded(Color.WHITE, dp(14).toFloat())
-            setPadding(dp(14), dp(14), dp(14), dp(14))
+            setPadding(dp(12), dp(12), dp(12), dp(12))
             scaleType = ImageView.ScaleType.FIT_CENTER
         }
-        address = text(13f, Color.argb(130, 255, 255, 255))
-        val right = LinearLayout(this).apply {
+        address = text(13f, Color.WHITE)
+        val phone = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            addView(text(20f, bold = true).apply { text = I18n.text(R.string.i18n_wallpaperactivity_003) })
-            addView(text(15f, Color.argb(190, 255, 255, 255)).apply {
-                text = I18n.text(R.string.i18n_wallpaperactivity_004)
-                setLineSpacing(0f, 1.25f)
-            }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10); bottomMargin = dp(18) })
-            addView(qr, LinearLayout.LayoutParams(dp(220), dp(220)))
-            addView(address, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
+            addView(text(18f, bold = true).apply { text = I18n.text(R.string.i18n_wallpaperactivity_003) })
+            addView(qr, LinearLayout.LayoutParams(dp(180), dp(180)).apply { topMargin = dp(12) })
+            addView(address, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
         }
-        setContentView(LinearLayout(this).apply {
+        root.addView(LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setBackgroundColor(Color.rgb(16, 16, 18))
             clipChildren = false
-            // The focused first-column tile expands into the root's left padding.
-            clipToPadding = false
-            setPadding(dp(64), dp(44), dp(56), dp(32))
-            addView(left, LinearLayout.LayoutParams(0, -1, 1f))
-            addView(right, LinearLayout.LayoutParams(dp(250), -2).apply { marginStart = dp(24) })
-        })
-        cards[prefs.background]?.requestFocus() ?: cards.values.first().requestFocus()
+            setPadding(dp(60), dp(36), dp(45), dp(28))
+            addView(scroll, LinearLayout.LayoutParams(0, -1, 1f))
+            addView(phone, LinearLayout.LayoutParams(dp(205), -2).apply { marginStart = dp(24) })
+        }, FrameLayout.LayoutParams(-1, -1))
+        setContentView(root)
+        (cards.values.firstOrNull { it.theme == prefs.background ||
+            (it.source == prefs.background && it.photo?.name == Wallpapers(this, prefs.background).current()?.name) }
+            ?: cards.values.firstOrNull())?.requestFocus()
     }
+
+    private fun addCard(row: LinearLayout, card: Card) {
+        cards[card.id] = card
+        row.addView(card, LinearLayout.LayoutParams(dp(174), -2).apply { marginEnd = dp(14) })
+    }
+
+    private fun renderSource(source: String) {
+        val row = rows[source] ?: return
+        val files = Wallpapers(this, source).files()
+        val stamp = files.joinToString("|") { it.name }
+        if (row.tag == stamp) return
+        val hadFocus = row.hasFocus()
+        cards.keys.filter { it.startsWith("photo:" + source + ":") || it == "more:" + source }
+            .forEach { cards.remove(it) }
+        row.removeAllViews()
+        row.tag = stamp
+        files.forEachIndexed { index, file ->
+            val thumb = BitmapFactory.decodeFile(file.path, BitmapFactory.Options().apply { inSampleSize = 8 })
+            addCard(row, Card("photo:" + source + ":" + file.name, source, file, null,
+                I18n.text(R.string.wallpaper_photo_number, index + 1), thumb) {
+                if (Wallpapers(this, source).select(file)) {
+                    prefs.background = source
+                    updateChecks()
+                }
+            })
+        }
+        if (source !in setOf(Wallpapers.MINE, Wallpapers.CUSTOM) && files.size < Wallpapers.MAX_FILES) {
+            addCard(row, Card("more:" + source, source, null, null,
+                I18n.text(R.string.wallpaper_download_more), null) {
+                downloads.execute {
+                    Wallpapers(this, source).prefetch((files.size + 4).coerceAtMost(Wallpapers.MAX_FILES))
+                    main.post { if (!isDestroyed) renderSource(source) }
+                }
+            })
+        } else if (files.isEmpty()) {
+            addCard(row, Card("more:" + source, source, null, null,
+                I18n.text(R.string.wallpaper_phone_upload), null) {
+                Toast.makeText(this, I18n.text(R.string.i18n_wallpaperactivity_010), Toast.LENGTH_LONG).show()
+            })
+        }
+        if (hadFocus) row.getChildAt(0)?.requestFocus()
+    }
+
+    private fun preview(photo: File?, theme: String?) {
+        if (photo == null && theme == null) return
+        val version = ++previewVersion
+        previews.execute {
+            val bitmap = when {
+                photo != null -> BitmapFactory.decodeFile(photo.path, BitmapFactory.Options().apply {
+                    inPreferredConfig = Bitmap.Config.RGB_565
+                })
+                theme != null -> Backgrounds.render(theme)
+                else -> null
+            }
+            main.post { if (version == previewVersion && !isDestroyed) backdrop.setImageBitmap(bitmap) }
+        }
+    }
+
+    private fun updateChecks() = cards.values.forEach { it.selected() }
 
     override fun onStart() {
         super.onStart()
         stopLater.removeCallbacks(stop)
         address.text = I18n.text(R.string.i18n_wallpaperactivity_005)
-        io.execute {
-            val url = PhoneServer.start(this)?.let { if (intent.getBooleanExtra("upload_avatar", false)) it + "#avatar" else it }
-            val bmp = url?.let { PhoneServer.qr(it) }
+        downloads.execute {
+            val url = PhoneServer.start(this)
+            val bitmap = url?.let { PhoneServer.qr(it) }
             main.post {
-                address.text = url ?: I18n.text(R.string.i18n_wallpaperactivity_006)
-                qr.setImageBitmap(bmp)
+                if (!isDestroyed) {
+                    address.text = url ?: I18n.text(R.string.i18n_wallpaperactivity_006)
+                    qr.setImageBitmap(bitmap)
+                }
+            }
+            for (source in Wallpapers.SOURCES) {
+                if (source != Wallpapers.MINE && source != Wallpapers.CUSTOM) {
+                    runCatching { Wallpapers(this, source).prefetch() }
+                }
+                main.post { if (!isDestroyed) { renderSource(source); updateChecks() } }
             }
         }
-        counts = ""
         poll.run()
+    }
+
+    private val poll = object : Runnable {
+        override fun run() {
+            rows.keys.forEach(::renderSource)
+            updateChecks()
+            main.postDelayed(this, 3000)
+        }
     }
 
     override fun onStop() {
@@ -148,56 +254,9 @@ class WallpaperActivity : Activity() {
     }
 
     override fun onDestroy() {
-        io.shutdown()
+        downloads.shutdown()
+        previews.shutdown()
         super.onDestroy()
-    }
-
-    /** Follows the phone: a new choice moves the check mark, new photos redraw the previews. */
-    private val poll = object : Runnable {
-        override fun run() {
-            cards.forEach { (k, c) -> c.selected(k == prefs.background) }
-            io.execute {
-                val now = Wallpapers.SOURCES.joinToString { s -> Wallpapers(this@WallpaperActivity, s).files().firstOrNull()?.name + Wallpapers(this@WallpaperActivity, s).files().size }
-                if (now != counts) { counts = now; loadPreviews() }
-            }
-            main.postDelayed(this, 3000)
-        }
-    }
-
-    /** Runs on [io]. */
-    private fun loadPreviews() {
-        for (s in Wallpapers.SOURCES) {
-            val files = Wallpapers(this, s).files()
-            val bmp = files.firstOrNull()?.let { BitmapFactory.decodeFile(it.path, BitmapFactory.Options().apply { inSampleSize = 8 }) }
-            val label = Wallpapers.label(s) + if (s == Wallpapers.MINE && files.isNotEmpty()) " · ${files.size}" else ""
-            val empty = when {
-                files.isNotEmpty() -> null
-                s == Wallpapers.MINE -> I18n.text(R.string.i18n_wallpaperactivity_007)
-                s == Wallpapers.CUSTOM -> I18n.text(R.string.i18n_wallpaperactivity_008)
-                else -> I18n.text(R.string.i18n_wallpaperactivity_009)
-            }
-            main.post { cards[s]?.apply { image.setImageBitmap(bmp); this.label.text = label; emptyText(empty) } }
-        }
-        for ((k, v) in Backgrounds.THEMES) {
-            val bmp: Bitmap = Backgrounds.render(k)
-            main.post { cards[k]?.apply { image.setImageBitmap(bmp); label.text = v.first; emptyText(null) } }
-        }
-    }
-
-    private fun pick(key: String) {
-        if (key == Wallpapers.MINE || key == Wallpapers.CUSTOM) {
-            if (Wallpapers(this, key).files().isEmpty()) {
-                Toast.makeText(this, if (key == Wallpapers.MINE) I18n.text(R.string.i18n_wallpaperactivity_010) else I18n.text(R.string.i18n_wallpaperactivity_011), Toast.LENGTH_LONG).show()
-                return
-            }
-        }
-        prefs.background = key
-        cards.forEach { (k, c) -> c.selected(k == key) }
-        io.execute { Wallpapers.trimExcept(this, key) }
-        if (key in Wallpapers.SOURCES && Wallpapers(this, key).files().isEmpty()) io.execute {
-            Wallpapers(this, key).refresh(force = true)
-            counts = ""
-        }
     }
 
     companion object {

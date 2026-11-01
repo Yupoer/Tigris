@@ -38,6 +38,7 @@
         android:theme="@style/Theme.TVHome">
 
         <activity android:name=".UpdateActivity" android:exported="false" android:screenOrientation="landscape" />
+        <activity android:name=".LocalAdbSetupActivity" android:exported="false" android:screenOrientation="landscape" />
         <service android:name=".UpdateJob" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="false" />
         <receiver android:name=".UpdateResult" android:exported="false" />
         <activity

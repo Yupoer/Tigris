@@ -130,6 +130,11 @@ class Prefs(ctx: Context) {
         get() = sp.getBoolean("keep_adb", false)
         set(v) = sp.edit().putBoolean("keep_adb", v).apply()
 
+    /** Opt-in: re-enable paired, TLS-protected Wireless debugging after a reboot. */
+    var keepWirelessAdb: Boolean
+        get() = sp.getBoolean("keep_wireless_adb", false)
+        set(v) = sp.edit().putBoolean("keep_wireless_adb", v).apply()
+
     /** Kept on disk while the home screen is in front, so a new process can tell how the last one ended. */
     var homeInFront: Boolean
         get() = sp.getBoolean("home_in_front", false)

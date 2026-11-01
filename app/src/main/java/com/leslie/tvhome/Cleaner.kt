@@ -2,6 +2,7 @@ package com.leslie.tvhome
 
 import android.app.ActivityManager
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import dadb.AdbKeyPair
 import dadb.Dadb
@@ -10,11 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * Talks to the TV's own adbd on 127.0.0.1:5555 so a normal app can run
- * shell-privileged commands (force-stop, shutdown). The first connection
- * makes the TV show I18n.text(R.string.i18n_cleaner_001); after I18n.text(R.string.i18n_cleaner_002) it is silent.
- */
+/** Shell access through paired Wireless debugging, with legacy 5555 for older TVs. */
 object LocalAdb {
     private const val TAG = "LocalAdb"
 
@@ -32,14 +29,27 @@ object LocalAdb {
      */
     fun shell(ctx: Context, cmd: String, waitAuthMs: Int = 4000): String? {
         val prefs = Prefs(ctx)
+        runCatching { LocalAdbTls.shell(ctx, cmd) }.getOrNull()?.let {
+            prefs.adbAuthorized = true
+            return it
+        }
         return try {
             Dadb.create("127.0.0.1", 5555, keys(ctx), connectTimeout = 3000, socketTimeout = waitAuthMs).use { d ->
                 d.shell(cmd).allOutput.also { prefs.adbAuthorized = true }
             }
         } catch (e: Throwable) {
             Log.w(TAG, "adb shell failed: $cmd", e)
+            prefs.adbAuthorized = false
             null
         }
+    }
+
+    /** User-initiated check. Never turn Wireless debugging on just to probe it. */
+    fun authorize(ctx: Context): Boolean {
+        val waitMs = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) 60_000 else 8_000
+        val ok = shell(ctx, "echo TIGRIS_ADB_OK", waitMs)?.contains("TIGRIS_ADB_OK") == true
+        Prefs(ctx).adbAuthorized = ok
+        return ok
     }
 
     /** Fire-and-forget variant for commands that kill the connection (shutdown). */

@@ -2,7 +2,7 @@
 
 > **此 fork 的 AirPlay 整合：**控制中心會開啟 [`airplay-direct/`](airplay-direct/) 內唯一的 AirPlay 接收器。可依 [AirPlay 安裝教學](docs/AIRPLAY.md) 從這個 repo 建置與安裝首頁和接收器；Tigris 本身不是第二個 AirPlay 接收器。
 
-> **Chromecast 本機偵錯：**若關機或深度記憶體清理一直顯示「重試」，請看 [重開機後重新開啟 ADB 5555 的步驟](docs/CHROMECAST_ADB.md)。首頁與 AirPlay 不依賴這項權限。
+> **Chromecast 本機偵錯：**按一下會先嘗試連線；若 Tigris 尚未配對，才需要完成一次[無線偵錯授權](docs/CHROMECAST_ADB.md)。不需要固定 5555 通訊埠。首頁與 AirPlay 不依賴這項權限。
 
 > **LG webOS 测试包 / Developer preview:** [webos-v0.1.0-preview.1](https://github.com/lesnolie/Tigris/releases/tag/webos-v0.1.0-preview.1) · [IPK 安装、启动、更新和卸载 / Setup guide](https://github.com/lesnolie/Tigris/blob/main/docs/webos-preview-install.md)。已提供打包 IPK，无需自行构建；未做实机测试，不是稳定版，不接管 Home。Prebuilt IPK available; hardware untested, no Home takeover.
 
@@ -467,7 +467,7 @@ adb -s 192.168.1.20:5555 uninstall com.leslie.tvhome
 | 亮度 / 背光 | 小米（需授权） | ✅ | ✅ |
 | 桌面守护、被杀后复活 | 国产固件需要 | ✅ | 原生 HOME 通常不需要 |
 
-**本机调试授权**：Tigris 通过 [dadb](https://github.com/mobile-dev-inc/dadb) 连接电视自己的 `127.0.0.1:5555`，执行待机、关机、深度清理等系统命令。电视必须保持「网络调试 / ADB 调试」开启；第一次操作时在电视上勾选「始终允许」。
+**本机调试授权**：Android 11 以上先尝试已配对的无线调试，并自动寻找动态端口；未配对时需要完成一次 Android 配对。旧版电视仍可通过 [dadb](https://github.com/mobile-dev-inc/dadb) 连接自己的 `127.0.0.1:5555`。这用于待机、关机、深度清理等系统命令，详见 [Chromecast 说明](docs/CHROMECAST_ADB.md)。
 
 **品牌差异**：
 
@@ -484,10 +484,7 @@ adb -s 192.168.1.20:5555 uninstall com.leslie.tvhome
 自动化只读取模板中的结构化字段，为中英文 README 创建待审核 PR；不会把陌生用户的反馈直接当成确认兼容，也不会直接改 `main`。
 
 <!-- TV_COMPATIBILITY_AUTO_START -->
-| 品牌与型号 | Android | Tigris / 安装包 | 安装结果 | Issue 状态 | 来源 |
-|---|---|---|---|---|---|
-| 创维酷开 85P3DMAX | Android 11 | 2.0.2 / 自定义 Fork | 已安装且能启动（自报） | 未关闭 | [#15](https://github.com/lesnolie/Tigris/issues/15) |
-| 雷鸟 75S545C | Android 9 | V2.0.2 / 守护版 | 已安装且能启动（自报） | 未关闭 | [#14](https://github.com/lesnolie/Tigris/issues/14) |
+尚无新的结构化社区反馈。[提交电视兼容性反馈](https://github.com/Yupoer/Tigris/issues/new/choose)。
 <!-- TV_COMPATIBILITY_AUTO_END -->
 
 ### 适配新品牌

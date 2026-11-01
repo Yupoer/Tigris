@@ -135,13 +135,16 @@ object Guard {
     }
 
     fun ensureAdb(ctx: Context) {
-        if (!Prefs(ctx).keepAdb || !hasSecureSettings(ctx)) return
+        if (!hasSecureSettings(ctx)) return
+        val prefs = Prefs(ctx)
         val r = ctx.contentResolver
-        if (Settings.Global.getInt(r, Settings.Global.ADB_ENABLED, 0) == 1) return
-        runCatching {
-            Settings.Global.putInt(r, Settings.Global.ADB_ENABLED, 1)
-            Log.i(TAG, "ADB debugging had been switched off; turned it back on")
-        }
+        if (prefs.keepAdb && Settings.Global.getInt(r, Settings.Global.ADB_ENABLED, 0) != 1)
+            runCatching { Settings.Global.putInt(r, Settings.Global.ADB_ENABLED, 1) }
+                .onFailure { Log.w(TAG, "could not restore ADB debugging", it) }
+        if (prefs.keepWirelessAdb && android.os.Build.VERSION.SDK_INT >= 30 &&
+            Settings.Global.getInt(r, "adb_wifi_enabled", 0) != 1)
+            runCatching { Settings.Global.putInt(r, "adb_wifi_enabled", 1) }
+                .onFailure { Log.w(TAG, "could not restore Wireless debugging", it) }
     }
 
     /** TCL writes its own screensaver back at boot; the photo frame takes its place again. */
@@ -379,7 +382,6 @@ class ConfigReceiver : BroadcastReceiver() {
         i.getStringExtra("intro_source")?.let { prefs.introSource = it }
         i.getStringExtra("background")?.takeIf { it in Wallpapers.SOURCES || it in Backgrounds.THEMES }?.let {
             prefs.background = it
-            Wallpapers.trimExcept(c, it)
         }
         if (i.hasExtra("settings_bg")) prefs.settingsBg = i.getBooleanExtra("settings_bg", true)
         if (i.hasExtra("own_icon")) prefs.ownIcon = i.getBooleanExtra("own_icon", true)

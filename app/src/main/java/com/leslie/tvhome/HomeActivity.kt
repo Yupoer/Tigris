@@ -240,7 +240,8 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             addAction(Intent.ACTION_SCREEN_OFF)
         })
         KeeperService.start(this)
-        if (!prefs.adbAuthorized) main.postDelayed({ askAdbAuthorization() }, if (intro != null) 8000L else 1500L)
+        if (!prefs.adbAuthorized && android.os.Build.VERSION.SDK_INT < 30)
+            main.postDelayed({ askAdbAuthorization() }, if (intro != null) 8000L else 1500L)
     }
 
     // ------------------------------------------------------------------- intro
@@ -1217,11 +1218,22 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
 
     fun authorizeAdb() {
-        Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_054), Toast.LENGTH_LONG).show()
         io.execute {
-            val ok = LocalAdb.shell(this, "echo ok", 60_000) != null
+            val ok = LocalAdb.authorize(this)
             main.post {
-                Toast.makeText(this, if (ok) I18n.text(R.string.i18n_homeactivity_055) else I18n.text(R.string.i18n_homeactivity_056), Toast.LENGTH_LONG).show()
+                if (isFinishing || isDestroyed) return@post
+                if (ok) Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_055), Toast.LENGTH_LONG).show()
+                else if (android.os.Build.VERSION.SDK_INT >= 30)
+                    showSheet(Sheet(root).title(I18n.text(R.string.local_adb_title))
+                        .message(I18n.text(R.string.local_adb_pair_required))
+                        .button(I18n.text(R.string.local_adb_open_settings)) {
+                            startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS))
+                        }
+                        .button(I18n.text(R.string.local_adb_pair_option)) {
+                            startActivity(android.content.Intent(this, LocalAdbSetupActivity::class.java))
+                        }
+                        .button(I18n.text(R.string.i18n_controlcenter_031)) {})
+                else Toast.makeText(this, I18n.text(R.string.i18n_homeactivity_056), Toast.LENGTH_LONG).show()
                 control.refresh()
             }
         }
