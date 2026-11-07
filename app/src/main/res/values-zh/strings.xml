@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="wallpaper_google_tv_local">Google TV 本机屏保照片</string>
+    <string name="wallpaper_google_tv_read">读取本机照片</string>
+    <string name="wallpaper_google_tv_empty">尚未找到 Google TV 缓存照片。请先运行一次原厂屏保，再重试。</string>
     <string name="app_name">主畫面</string>
     <string name="settings_name">主畫面設定</string>
     <string name="wallpaper_name">壁紙</string>

@@ -1,6 +1,7 @@
 package com.leslie.tvhome
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -26,6 +27,7 @@ class WallpaperActivity : Activity() {
     private val main = Handler(Looper.getMainLooper())
     private val downloads = Executors.newSingleThreadExecutor()
     private val previews = Executors.newSingleThreadExecutor()
+    private val localPhotos = Executors.newSingleThreadExecutor()
     private val rows = LinkedHashMap<String, LinearLayout>()
     private val cards = LinkedHashMap<String, Card>()
     private lateinit var backdrop: ImageView
@@ -37,6 +39,7 @@ class WallpaperActivity : Activity() {
         val id: String, val source: String?, val photo: File?, val theme: String?,
         title: String, thumbnail: Bitmap?, action: () -> Unit,
     ) : LinearLayout(this@WallpaperActivity) {
+        private lateinit var thumbnailView: ImageView
         private val check = text(14f, Color.WHITE, bold = true).apply {
             text = "✓"
             gravity = Gravity.CENTER
@@ -50,6 +53,7 @@ class WallpaperActivity : Activity() {
             clipChildren = false
             val frame = FrameLayout(context).apply { clipChildren = false }
             frame.addView(ImageView(context).apply {
+                thumbnailView = this
                 scaleType = ImageView.ScaleType.CENTER_CROP
                 setImageBitmap(thumbnail)
                 background = rounded(Color.argb(45, 255, 255, 255), dp(12).toFloat())
@@ -84,6 +88,7 @@ class WallpaperActivity : Activity() {
                 (photo != null && source != null && source == prefs.background &&
                     Wallpapers(this@WallpaperActivity, source).current()?.name == photo.name)) VISIBLE else GONE
         }
+        fun thumbnail(bitmap: Bitmap?) { thumbnailView.setImageBitmap(bitmap) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -173,16 +178,42 @@ class WallpaperActivity : Activity() {
         row.removeAllViews()
         row.tag = stamp
         files.forEachIndexed { index, file ->
-            val thumb = BitmapFactory.decodeFile(file.path, BitmapFactory.Options().apply { inSampleSize = 8 })
-            addCard(row, Card("photo:" + source + ":" + file.name, source, file, null,
+            val localGoogle = source == Wallpapers.GOOGLE_TV
+            val thumb = if (localGoogle) null else BitmapFactory.decodeFile(file.path,
+                BitmapFactory.Options().apply { inSampleSize = 8 })
+            val card = Card("photo:" + source + ":" + file.name, source, file, null,
                 I18n.text(R.string.wallpaper_photo_number, index + 1), thumb) {
                 if (Wallpapers(this, source).select(file)) {
                     prefs.background = source
                     updateChecks()
                 }
-            })
+            }
+            addCard(row, card)
+            if (localGoogle) localPhotos.execute {
+                val bitmap = GoogleTvPhotos.decode(this, file, BitmapFactory.Options().apply { inSampleSize = 8 })
+                main.post {
+                    if (!isDestroyed && cards[card.id] === card) card.thumbnail(bitmap)
+                    else bitmap?.recycle()
+                }
+            }
         }
-        if (source !in setOf(Wallpapers.MINE, Wallpapers.CUSTOM) && files.size < Wallpapers.MAX_FILES) {
+        if (source == Wallpapers.GOOGLE_TV && files.isEmpty()) {
+            addCard(row, Card("more:" + source, source, null, null,
+                I18n.text(R.string.wallpaper_google_tv_read), null) {
+                localPhotos.execute {
+                    val authorized = LocalAdb.authorize(this)
+                    if (authorized) GoogleTvPhotos.refresh(this, force = true)
+                    main.post {
+                        if (!isDestroyed) {
+                            if (!authorized) startActivity(Intent(this, LocalAdbSetupActivity::class.java))
+                            else if (GoogleTvPhotos.files().isEmpty()) Toast.makeText(this,
+                                I18n.text(R.string.wallpaper_google_tv_empty), Toast.LENGTH_LONG).show()
+                            renderSource(source)
+                        }
+                    }
+                }
+            })
+        } else if (source !in setOf(Wallpapers.MINE, Wallpapers.CUSTOM, Wallpapers.GOOGLE_TV) && files.size < Wallpapers.MAX_FILES) {
             addCard(row, Card("more:" + source, source, null, null,
                 I18n.text(R.string.wallpaper_download_more), null) {
                 downloads.execute {
@@ -204,9 +235,11 @@ class WallpaperActivity : Activity() {
         val version = ++previewVersion
         previews.execute {
             val bitmap = when {
-                photo != null -> BitmapFactory.decodeFile(photo.path, BitmapFactory.Options().apply {
-                    inPreferredConfig = Bitmap.Config.RGB_565
-                })
+                photo != null -> {
+                    val options = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.RGB_565 }
+                    if (GoogleTvPhotos.owns(photo)) GoogleTvPhotos.decode(this, photo, options)
+                    else BitmapFactory.decodeFile(photo.path, options)
+                }
                 theme != null -> Backgrounds.render(theme)
                 else -> null
             }
@@ -230,6 +263,7 @@ class WallpaperActivity : Activity() {
                 }
             }
             for (source in Wallpapers.SOURCES) {
+                if (source == Wallpapers.GOOGLE_TV && !prefs.adbAuthorized && prefs.background != source) continue
                 if (source != Wallpapers.MINE && source != Wallpapers.CUSTOM) {
                     runCatching { Wallpapers(this, source).prefetch() }
                 }
@@ -256,6 +290,7 @@ class WallpaperActivity : Activity() {
     override fun onDestroy() {
         downloads.shutdown()
         previews.shutdown()
+        localPhotos.shutdown()
         super.onDestroy()
     }
 

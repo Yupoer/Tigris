@@ -43,6 +43,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
 
     /** Cached files, newest first (Bing files are named by date; others by download time). */
     fun files(): List<File> {
+        if (source == GOOGLE_TV) return GoogleTvPhotos.files()
         val all = dir.listFiles { f -> f.name.endsWith(".jpg") } ?: return emptyList()
         return if (source == BING) all.sortedByDescending { it.name } else all.sortedByDescending { it.lastModified() }
     }
@@ -64,6 +65,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
 
     /** Fill the category strip gradually; keep the actual image files bounded by [MAX_FILES]. */
     fun prefetch(minimum: Int = 4) {
+        if (source == GOOGLE_TV) { GoogleTvPhotos.refresh(ctx); return }
         if (source == MINE || source == CUSTOM) return
         refresh()
         while (files().size < minimum.coerceAtMost(MAX_FILES) && download() != null) Unit
@@ -90,7 +92,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
 
     /** "Title — place (© photographer)" for the photo frame caption. */
     fun caption(f: File): String = try {
-        JSONObject(metaFile.readText()).optString(f.name)
+        if (source == GOOGLE_TV) label(GOOGLE_TV) else JSONObject(metaFile.readText()).optString(f.name)
     } catch (e: Exception) { "" }
 
     /**
@@ -98,6 +100,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
      * if there is none yet, so a newly picked source shows something straight away.
      */
     fun refresh(force: Boolean = false) {
+        if (source == GOOGLE_TV) { GoogleTvPhotos.refresh(ctx, force); return }
         if (source == MINE) return
         // One at a time per source: the home screen, the frame and the phone page may all ask.
         synchronized(lock) {
@@ -183,6 +186,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
 
     /** Blocking. Downloads the next picture of the day's list; null once it is used up or none works. */
     private fun download(): File? = synchronized(lock) {
+        if (source == GOOGLE_TV) return null
         val q = readQueue() ?: return null
         val items = q.optJSONArray("items") ?: return null
         val meta = runCatching { JSONObject(metaFile.readText()) }.getOrElse { JSONObject() }
@@ -240,6 +244,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
 
     /** A photo sent from a phone, for [MINE]. Returns its file name, or null if it isn't a picture. */
     fun add(bytes: ByteArray): String? {
+        if (source == GOOGLE_TV) return null
         val name = "my-" + hash(bytes) + ".jpg"
         return if (File(dir, name).exists() || write(bytes, name)) name else null
     }
@@ -253,6 +258,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
     }
 
     fun delete(name: String) {
+        if (source == GOOGLE_TV) return
         if (name.contains('/') || !name.endsWith(".jpg")) return
         File(dir, name).delete()
     }
@@ -370,10 +376,12 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
     }
 
     fun decode(f: File, full: Boolean = false): Bitmap? = try {
-        BitmapFactory.decodeFile(f.path, BitmapFactory.Options().apply {
+        val options = BitmapFactory.Options().apply {
             inPreferredConfig = if (full) Bitmap.Config.ARGB_8888 else Bitmap.Config.RGB_565
             inMutable = true
-        })
+        }
+        if (source == GOOGLE_TV) GoogleTvPhotos.decode(ctx, f, options)
+        else BitmapFactory.decodeFile(f.path, options)
     } catch (e: OutOfMemoryError) { null }
 
     /** A photo dressed for the home screen: darker at the bottom and top-left so tiles and clock stay legible. */
@@ -402,8 +410,9 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
         const val SCENERY = "scenery"
         const val FRESH = "fresh"
         const val ART = "art"
+        const val GOOGLE_TV = "google-tv-local"
         private const val ANIME_BACKUP = "anime-backup"
-        val SOURCES = listOf(BING, SCENERY, FRESH, ANIME, ART, MINE, CUSTOM)
+        val SOURCES = listOf(GOOGLE_TV, BING, SCENERY, FRESH, ANIME, ART, MINE, CUSTOM)
 
         /** Hosts to the captions the photo frame shows under their pictures. */
         private val CAPTIONS get() = mapOf("360.cn" to I18n.text(R.string.i18n_wallpapers_001), "wallhaven.cc" to "Wallhaven", "alcy.cc" to I18n.text(R.string.i18n_wallpapers_002),
@@ -437,6 +446,7 @@ class Wallpapers(private val ctx: Context, private val source: String = BING) {
         private val IMAGE_URL = Regex("""https?://[^\s"'<>()\\]+?\.(?:jpe?g|png|webp)(?:\?[^\s"'<>()\\]*)?""", RegexOption.IGNORE_CASE)
 
         fun label(source: String) = when (source) {
+            GOOGLE_TV -> I18n.text(R.string.wallpaper_google_tv_local)
             ANIME -> I18n.text(R.string.i18n_wallpapers_004)
             SCENERY -> I18n.text(R.string.i18n_wallpapers_005)
             FRESH -> I18n.text(R.string.i18n_wallpapers_006)

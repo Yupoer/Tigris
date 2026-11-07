@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="wallpaper_google_tv_local">Google TV local screensaver photos</string>
+    <string name="wallpaper_google_tv_read">Read local photos</string>
+    <string name="wallpaper_google_tv_empty">No cached Google TV photos found. Run the original screensaver once, then try again.</string>
     <string name="app_name">Tigris</string>
     <string name="settings_name">Home Screen Settings</string>
     <string name="wallpaper_name">Wallpaper</string>

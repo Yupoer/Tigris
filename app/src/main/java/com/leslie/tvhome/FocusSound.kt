@@ -20,7 +20,10 @@ class FocusSound(private val ctx: Context) {
     private val sound: Int
 
     init {
-        pool.setOnLoadCompleteListener { _, _, status -> ready = status == 0 }
+        pool.setOnLoadCompleteListener { _, _, status ->
+            ready = status == 0
+            android.util.Log.d("FocusSound", "Apple icon focus sound load status=$status")
+        }
         sound = pool.load(ctx, R.raw.focus_tick, 1)
     }
 
@@ -36,9 +39,8 @@ class FocusSound(private val ctx: Context) {
         if (lastPlay >= 0 && now - lastPlay < 45L) return
         lastPlay = now
         if (stream != 0) pool.stop(stream)
-        val pan = dx.coerceIn(-1, 1) * 0.08f
-        val rate = when { dy < 0 -> 1.04f; dy > 0 -> 0.96f; else -> 1f }
-        stream = pool.play(sound, 0.42f - pan, 0.42f + pan, 1, 0, rate)
+        val pan = dx.coerceIn(-1, 1) * 0.04f
+        stream = pool.play(sound, 0.30f - pan, 0.30f + pan, 1, 0, 1f)
     }
 
     fun release() {

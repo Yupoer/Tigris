@@ -177,6 +177,7 @@ class PhoneServer private constructor(private val ctx: Context, private val toke
         .put("backdrop", SettingsActivity.backdropFile(ctx) != null)
         .put("mine", names(Wallpapers.MINE))
         .put("custom", names(Wallpapers.CUSTOM))
+        .put("googleTvLocal", names(Wallpapers.GOOGLE_TV))
 
     private fun thumb(rest: String): Response {
         val (source, name) = rest.split('/', limit = 2).takeIf { it.size == 2 } ?: return text(Response.Status.NOT_FOUND, "")

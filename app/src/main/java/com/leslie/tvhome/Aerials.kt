@@ -15,6 +15,7 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
@@ -116,6 +117,7 @@ class AerialSaver(private val ctx: Context, private val onFail: () -> Unit) : Sa
         films = Aerials.all(ctx).shuffled()
         val hevc = MediaQuality.hevcDecoderPresent()
         val uhd = hevc && MediaQuality.uhdAerial(ctx)
+        Log.i("AerialSaver", "quality=${Prefs(ctx).aerialQuality} hardwareHevc=$hevc request4k=$uhd")
         selectedVariant.clear()
         sources = films.associate { film ->
             film.id to MediaQuality.aerialCandidates(film.url, film.hevc, uhd, hevc)
@@ -159,7 +161,14 @@ class AerialSaver(private val ctx: Context, private val onFail: () -> Unit) : Sa
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (isPlaying) failures = 0
+                if (isPlaying) {
+                    failures = 0
+                    Log.i("AerialSaver", "Playing ${p.videoFormat?.width}x${p.videoFormat?.height} ${p.videoFormat?.codecs}")
+                }
+            }
+
+            override fun onVideoSizeChanged(videoSize: VideoSize) {
+                Log.i("AerialSaver", "Decoded video ${videoSize.width}x${videoSize.height}")
             }
         })
         p.setMediaItems(films.map {

@@ -29,3 +29,12 @@ test. Depicted brands and media retain their respective rights.
 
 The aerial preview records the owner's television playing the Apple-hosted
 screensaver. The app streams aerials and does not bundle the films.
+
+## Local Apple focus-sound customization
+
+`app/src/main/res/raw/focus_tick.wav` is converted from Apple's
+`focus_change_app_icon.caf`, obtained from the extracted system-sound archive
+at https://github.com/extratone/iOSSystemSounds/blob/main/caf/focus_change_app_icon.caf.
+It retains Apple's rights and is not included in the source-code MIT license.
+The local conversion changes 24-bit little-endian PCM to 16-bit little-endian WAV;
+it preserves the original sample rate, timing and pitch.
