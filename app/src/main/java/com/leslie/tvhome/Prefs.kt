@@ -150,10 +150,18 @@ class Prefs(ctx: Context) {
         get() = sp.getStringSet("pinned_inputs", emptySet())!!.toSet()
         set(v) = sp.edit().putStringSet("pinned_inputs", v).apply()
 
-    /** Explicit opt-in. Never request weather or geolocation while false. */
+    /** Explicit opt-in. Never request weather while false. */
     var weatherEnabled: Boolean
         get() = sp.getBoolean("weather_enabled", false)
         set(v) = sp.edit().putBoolean("weather_enabled", v).apply()
+
+    var networkLocationEnabled: Boolean
+        get() = sp.getBoolean("network_location_enabled", false)
+        set(v) = sp.edit().putBoolean("network_location_enabled", v).apply()
+
+    var weatherAutomatic: Boolean
+        get() = sp.getBoolean("weather_automatic", weatherCity.isBlank())
+        set(v) = sp.edit().putBoolean("weather_automatic", v).apply()
 
     var weatherFahrenheit: Boolean
         get() = sp.getBoolean("weather_fahrenheit", false)

@@ -5,6 +5,7 @@ import com.leslie.tvhome.R
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.media.tv.TvContract
 import android.media.tv.TvInputInfo
@@ -125,7 +126,13 @@ open class AndroidAdapter(protected val ctx: Context) : TvAdapter {
         runCatching { ctx.packageManager.getPackageInfo(pkg, 0); true }.getOrDefault(false)
 
     /** PackageManager checks an explicit component; Intent.resolveActivity would return it unchecked. */
-    protected fun resolvable(i: Intent): Intent? = if (ctx.packageManager.resolveActivity(i, 0) != null) i else null
+    protected fun resolvable(i: Intent): Intent? = runCatching {
+        val info = ctx.packageManager.resolveActivity(i, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo
+            ?: return@runCatching null
+        val permission = info.permission
+        if (info.enabled && info.applicationInfo.enabled && info.exported &&
+            (permission == null || ctx.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED)) i else null
+    }.getOrNull()
 
     protected fun start(i: Intent): Boolean = runCatching {
         ctx.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); true

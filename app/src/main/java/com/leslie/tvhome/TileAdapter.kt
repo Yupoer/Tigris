@@ -222,6 +222,7 @@ class TileAdapter(
         val cell = TileCell(parent.context, tileW, tileH)
         cell.layoutParams = RecyclerView.LayoutParams(tileW, tileH)
         val vh = VH(cell)
+        var longPressHandled = false
         cell.setOnFocusChangeListener { _, f ->
             val p = vh.bindingAdapterPosition
             cell.setFocusedLook(f, lastDx, lastDy, showLabel = p >= dockCount, tvos = tvosFocus)
@@ -231,11 +232,32 @@ class TileAdapter(
             vh.bindingAdapterPosition.takeIf { it >= 0 }?.let { listener.onTileClicked(it, cell) }
         }
         cell.setOnLongClickListener {
-            vh.bindingAdapterPosition.takeIf { it >= 0 }?.let { listener.onTileLongPressed(it, cell) }
+            if (!longPressHandled) vh.bindingAdapterPosition.takeIf { it >= 0 }?.let {
+                longPressHandled = true
+                listener.onTileLongPressed(it, cell)
+            }
             true
         }
         cell.setOnKeyListener { _, code, e ->
-            e.action == KeyEvent.ACTION_DOWN && vh.bindingAdapterPosition >= 0 &&
+            if (code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER) {
+                when {
+                    e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0 -> {
+                        longPressHandled = false
+                        false
+                    }
+                    e.action == KeyEvent.ACTION_DOWN && (e.isLongPress ||
+                        (e.repeatCount > 0 && e.eventTime - e.downTime >= android.view.ViewConfiguration.getLongPressTimeout())) -> {
+                        cell.cancelLongPress()
+                        cell.performLongClick()
+                        true
+                    }
+                    e.action == KeyEvent.ACTION_UP && longPressHandled -> {
+                        cell.isPressed = false
+                        true
+                    }
+                    else -> false
+                }
+            } else e.action == KeyEvent.ACTION_DOWN && vh.bindingAdapterPosition >= 0 &&
                 listener.onTileKey(vh.bindingAdapterPosition, cell, code)
         }
         return vh

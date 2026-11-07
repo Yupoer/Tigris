@@ -72,9 +72,32 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private lateinit var backdrop: FrameLayout
     private lateinit var bg: ImageView
     private lateinit var header: FrameLayout
-    private lateinit var weatherCard: TextView
+    private lateinit var weatherCard: WeatherWidget
     private var weatherLoading = false
     private var lastWeatherAttempt = 0L
+    private var observedNetwork: String? = null
+    private var observingNetwork = false
+    private val networkChanges = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: android.net.Network) = networkChanged()
+        override fun onLost(network: android.net.Network) = networkChanged()
+        override fun onCapabilitiesChanged(network: android.net.Network, caps: NetworkCapabilities) = networkChanged()
+        override fun onLinkPropertiesChanged(network: android.net.Network, properties: android.net.LinkProperties) = networkChanged()
+    }
+
+    private fun networkChanged() {
+        main.post {
+            if (isDestroyed) return@post
+            val fingerprint = NetworkLocation.fingerprint(this)
+            if (fingerprint == observedNetwork) return@post
+            observedNetwork = fingerprint
+            lastWeatherAttempt = 0L
+            if (resumed) {
+                updateNetworkIcon()
+                refreshWeather()
+                if (control.isOpen) control.refresh()
+            }
+        }
+    }
     private lateinit var clockText: TextView
     /** The large clock top left, with the date above it ([Prefs.CLOCK_LARGE]). */
     private lateinit var bigClock: LinearLayout
@@ -135,6 +158,12 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private lateinit var shelfMeta: TextView
     private lateinit var shelfInfo: LinearLayout
     private lateinit var shelfDots: LinearLayout
+    private lateinit var shelfRatings: LinearLayout
+    private lateinit var shelfPrevious: TextView
+    private lateinit var shelfNext: TextView
+    private var shelfImageRequest = 0L
+    private var shelfTargetIndex = 0
+    private var appMenu: AppContextMenu? = null
     private val net = Executors.newFixedThreadPool(2)
     private var shelfPkg: String? = null
     private var pendingShelf: String? = null
@@ -145,14 +174,22 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private var youtubePermissionRequested = false
     private var observingRecommendations = false
     private val shelfShow = Runnable { pendingShelf?.let { showShelf(it) } }
-    private val shelfRefresh = Runnable {
-        val pkg = shelfPkg
-        if (resumed && pkg != null && !control.isOpen) showShelf(pkg)
+    private val shelfRefresh = object : Runnable {
+        override fun run() {
+            val pkg = shelfPkg
+            if (!resumed || pkg == null || control.isOpen) return
+            if (shelf.hasFocus() || appMenu != null) main.postDelayed(this, 30_000L)
+            else showShelf(pkg)
+        }
     }
     private val youtubeChanged = Runnable {
         Shelf.invalidate(YouTubeChannels.PACKAGE)
-        if (resumed && shelfPkg == YouTubeChannels.PACKAGE && !control.isOpen)
-            showShelf(YouTubeChannels.PACKAGE)
+        if (resumed && shelfPkg == YouTubeChannels.PACKAGE && !control.isOpen) {
+            if (shelf.hasFocus() || appMenu != null) {
+                main.removeCallbacks(shelfRefresh)
+                main.postDelayed(shelfRefresh, 30_000L)
+            } else showShelf(YouTubeChannels.PACKAGE)
+        }
     }
     private val recommendationObserver = object : ContentObserver(main) {
         override fun onChange(selfChange: Boolean) {
@@ -162,14 +199,15 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
     private val shelfAdvance = object : Runnable {
         override fun run() {
-            if (!shelfShown || shelfItems.size < 2) return
+            if (!shelfShown || shelf.hasFocus() || shelfItems.size < 2) return
             val pkg = shelfPkg ?: return
+            val request = ++shelfImageRequest
             val next = (shelfIndex + 1) % shelfItems.size
             val item = shelfItems[next]
             net.execute {
                 val b = Shelf.image(this@HomeActivity, item)
                 main.post {
-                    if (shelfPkg == pkg && shelfShown && !control.isOpen) {
+                    if (shelfPkg == pkg && shelfImageRequest == request && shelfShown && !shelf.hasFocus() && !control.isOpen && appMenu == null) {
                         if (b != null) showShelfItem(next, b)
                         main.postDelayed(this, SHELF_SECONDS * 1000L)
                     }
@@ -195,7 +233,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
      * keeps the screen on so Xiaomi's does not follow. Elsewhere Android's screensaver applies.
      */
     private val idleFrame = Runnable {
-        if (hasWindowFocus() && sheets.isEmpty() && !control.isOpen) openFrame()
+        if (hasWindowFocus() && sheets.isEmpty() && appMenu == null && !control.isOpen) openFrame()
     }
 
     private fun firmwareSaverDelay(): Long? {
@@ -300,6 +338,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
 
     override fun onDestroy() {
+        appMenu?.dismiss()
         unregisterReceiver(pkgReceiver)
         main.removeCallbacksAndMessages(null)
         control.destroy()
@@ -400,29 +439,20 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         header.addView(icons, FrameLayout.LayoutParams(-2, -2, Gravity.END or Gravity.TOP).apply {
             rightMargin = dp(32); topMargin = dp(26)
         })
-        // Weather is opt-in. The compact translucent card sits below the status icons,
-        // does not steal D-pad focus, and leaves the normal Dock layout unchanged.
-        weatherCard = text(15f, Color.WHITE, weight = 500).apply {
-            maxLines = 2
-            setPadding(dp(17), dp(10), dp(17), dp(10))
-            background = android.graphics.drawable.GradientDrawable().apply {
-                setColor(Color.argb(45, 255, 255, 255))
-                cornerRadius = dp(17).toFloat()
-                setStroke(dp(1), Color.argb(62, 255, 255, 255))
-            }
-            isFocusable = false
+        weatherCard = WeatherWidget(this).apply {
             visibility = if (prefs.weatherEnabled) View.VISIBLE else View.GONE
         }
-        header.addView(weatherCard, FrameLayout.LayoutParams(dp(310), dp(69),
-            Gravity.TOP or Gravity.END).apply {
-            rightMargin = dp(31); topMargin = dp(79)
+        header.addView(weatherCard, FrameLayout.LayoutParams(dp(152), -2,
+            Gravity.TOP or Gravity.START).apply {
+            leftMargin = side; topMargin = dp(30)
         })
         listOf(netButton, ccButton, avatar).forEach { b ->
             b.setOnKeyListener { _, code, e ->
                 if (e.action != KeyEvent.ACTION_DOWN) false else when {
                     code == KeyEvent.KEYCODE_DPAD_DOWN -> {
                         adapter.lastDx = 0; adapter.lastDy = 1
-                        focusAt(focusedPos, navigation = true)
+                        if (shelfShown && shelfItems.isNotEmpty()) shelf.requestFocus()
+                        else focusAt(focusedPos, navigation = true)
                         true
                     }
                     code == KeyEvent.KEYCODE_DPAD_RIGHT && b == ccButton && avatar.visibility == View.VISIBLE -> {
@@ -487,7 +517,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
                 val expansion = (off / (rowPitch * 0.7f)).coerceIn(0f, 1f)
                 dock.translationY = -off
                 icons.translationY = -off
-                weatherCard.alpha = 1f - expansion
+                weatherCard.alpha = (1f - expansion) * if (shelfShown) 0.65f else 1f
                 // Off-screen controls must also leave remote-control focus navigation.
                 icons.visibility = if (off > 0f && off >= icons.bottom) View.INVISIBLE else View.VISIBLE
                 dock.alpha = 1f
@@ -511,25 +541,27 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             return
         }
         weatherCard.visibility = View.VISIBLE
-        val name = prefs.weatherCity
-        if (name.isBlank()) {
-            weatherCard.text = I18n.text(R.string.weather_weather_pending)
-            return
-        }
-        val city = Weather.City(name, prefs.weatherLatitude, prefs.weatherLongitude)
-        Weather.cached(this, city)?.let { weatherCard.text = Weather.format(it, prefs.weatherFahrenheit) }
-            ?: run { weatherCard.text = I18n.text(R.string.weather_weather_unavailable) }
+        Weather.cachedSelected(this, prefs)?.let { weatherCard.show(it, prefs.weatherFahrenheit) }
+            ?: weatherCard.pending(if (prefs.weatherAutomatic) I18n.text(R.string.weather_settings) else prefs.weatherCity,
+                automatic = prefs.weatherAutomatic)
         val now = System.currentTimeMillis()
         if (weatherLoading || now - lastWeatherAttempt < 2 * 60_000L) return
         weatherLoading = true
         lastWeatherAttempt = now
+        val fingerprint = NetworkLocation.fingerprint(this)
         io.execute {
-            val observed = Weather.load(applicationContext, city)
+            val selected = if (prefs.weatherAutomatic) "auto" else prefs.weatherCity
+            val observed = Weather.loadSelected(applicationContext, prefs)
             main.post {
                 weatherLoading = false
-                if (!isDestroyed && prefs.weatherEnabled && prefs.weatherCity == city.name) {
-                    weatherCard.text = observed?.let { Weather.format(it, prefs.weatherFahrenheit) }
-                        ?: I18n.text(R.string.weather_weather_unavailable)
+                if (fingerprint != NetworkLocation.fingerprint(this@HomeActivity)) {
+                    lastWeatherAttempt = 0L
+                    if (resumed && !isDestroyed) refreshWeather()
+                    return@post
+                }
+                if (!isDestroyed && prefs.weatherEnabled && selected == (if (prefs.weatherAutomatic) "auto" else prefs.weatherCity)) {
+                    if (observed != null) weatherCard.show(observed, prefs.weatherFahrenheit)
+                    else weatherCard.unavailable()
                 }
             }
         }
@@ -606,22 +638,60 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     // ------------------------------------------------------------------- shelf
 
     private fun buildShelf(side: Int) {
-        shelf = FrameLayout(this).apply { alpha = 0f; visibility = View.INVISIBLE }
+        shelf = FrameLayout(this).apply {
+            alpha = 0f
+            visibility = View.INVISIBLE
+            isFocusable = true
+            isFocusableInTouchMode = true
+            contentDescription = I18n.text(R.string.home_recommendation_browse)
+            setOnFocusChangeListener { _, focused ->
+                weatherCard.animate().alpha(if (focused) 0.45f else if (shelfShown) 0.65f else 1f).setDuration(250).start()
+                shelfPrevious.visibility = if (focused && shelfItems.size > 1) View.VISIBLE else View.GONE
+                shelfNext.visibility = if (focused && shelfItems.size > 1) View.VISIBLE else View.GONE
+                if (focused) pauseShelfRotation() else if (!control.isOpen && appMenu == null) resumeShelfRotation()
+            }
+            setOnKeyListener { _, code, event ->
+                when (code) {
+                    KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        if (event.action == KeyEvent.ACTION_DOWN)
+                            browseShelf(if (code == KeyEvent.KEYCODE_DPAD_LEFT) -1 else 1)
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        if (event.action == KeyEvent.ACTION_DOWN) ccButton.requestFocus()
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        if (event.action == KeyEvent.ACTION_DOWN) focusAt(focusedPos, navigation = true)
+                        true
+                    }
+                    KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                        if (event.action == KeyEvent.ACTION_UP && event.repeatCount == 0)
+                            (grid.findViewHolderForAdapterPosition(focusedPos)?.itemView as? TileCell)
+                                ?.let { onTileClicked(focusedPos, it) }
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }
         shelfPics = FrameLayout(this)
         shelf.addView(shelfPics, FrameLayout.LayoutParams(-1, -1))
         val shadow = { t: TextView -> t.setShadowLayer(dp(10).toFloat(), 0f, dp(1).toFloat(), Color.argb(150, 0, 0, 0)) }
-        shelfSource = text(16f, Color.argb(200, 255, 255, 255), weight = 600).also(shadow)
+        shelfSource = text(16f, Color.argb(200, 255, 255, 255), weight = 600).also(shadow).apply { visibility = View.GONE }
         shelfTitle = text(38f, weight = 700).apply {
             maxLines = 2
             ellipsize = android.text.TextUtils.TruncateAt.END
             setLineSpacing(0f, 1.08f)
         }.also(shadow)
         shelfMeta = text(17f, Color.argb(210, 255, 255, 255), weight = 500).apply { maxLines = 1 }.also(shadow)
+        shelfRatings = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         shelfInfo = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             addView(shelfSource)
             addView(shelfTitle, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10) })
             addView(shelfMeta, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(10) })
+            addView(shelfRatings, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(10) })
         }
         val above = sh - dockRect.top + dp(30)
         shelf.addView(shelfInfo, FrameLayout.LayoutParams((sw * 0.56f).toInt(), -2, Gravity.BOTTOM or Gravity.START).apply {
@@ -631,10 +701,42 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         shelf.addView(shelfDots, FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.END).apply {
             rightMargin = side; bottomMargin = above + dp(4)
         })
+        fun arrow(symbol: String, label: Int, edge: Int) = text(32f, weight = 400).apply {
+            text = symbol
+            gravity = Gravity.CENTER
+            contentDescription = I18n.text(label)
+            isFocusable = false
+            visibility = View.GONE
+            background = rounded(Color.argb(110, 20, 24, 30), dp(24).toFloat())
+            shelf.addView(this, FrameLayout.LayoutParams(dp(40), dp(64), Gravity.CENTER_VERTICAL or edge).apply {
+                if (edge == Gravity.START) leftMargin = dp(18) else rightMargin = dp(18)
+                bottomMargin = (sh - dockRect.top) / 2
+            })
+        }
+        shelfPrevious = arrow("‹", R.string.home_recommendation_previous, Gravity.START)
+        shelfNext = arrow("›", R.string.home_recommendation_next, Gravity.END)
         backdrop.addView(shelf, FrameLayout.LayoutParams(-1, -1))
     }
 
+    private fun browseShelf(direction: Int) {
+        if (shelfItems.size < 2) return
+        val request = ++shelfImageRequest
+        val pkg = shelfPkg
+        shelfTargetIndex = Math.floorMod(shelfTargetIndex + direction, shelfItems.size)
+        val target = shelfTargetIndex
+        val item = shelfItems[target]
+        focusSound.play(shelf, direction, 0)
+        net.execute {
+            val picture = Shelf.image(this, item)
+            main.post {
+                if (shelfShown && shelf.hasFocus() && shelfPkg == pkg && shelfImageRequest == request && picture != null)
+                    showShelfItem(target, picture)
+            }
+        }
+    }
+
     private fun showShelf(pkg: String) {
+        shelfImageRequest++
         shelfPkg = pkg
         val request = ++shelfRequestId
         val label = adapter.apps.firstOrNull { it.pkg == pkg }?.label ?: pkg
@@ -646,6 +748,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             main.post {
                 if (shelfPkg != pkg || shelfRequestId != request || first == null || control.isOpen) return@post
                 shelfItems = items
+                shelfTargetIndex = first.first
                 shelfSource.text = Shelf.sourceName(pkg, label)
                 shelfDots.removeAllViews()
                 repeat(items.size) {
@@ -665,6 +768,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private fun showShelfItem(i: Int, b: Bitmap) {
         val item = shelfItems.getOrNull(i) ?: return
         shelfIndex = i
+        shelfTargetIndex = i
         // The new picture fades in over the old one, settling from a slight zoom.
         val old = shelfFront
         val pic = ImageView(this).apply { scaleType = ImageView.ScaleType.CENTER_CROP; setImageBitmap(b) }
@@ -682,6 +786,17 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         shelfInfo.translationY = dp(10).toFloat()
         shelfTitle.text = item.title
         shelfMeta.text = item.meta
+        shelfRatings.removeAllViews()
+        fun rating(label: String, imdb: Boolean = false) {
+            shelfRatings.addView(text(13f, if (imdb) Color.rgb(30, 27, 16) else Color.WHITE, weight = 600).apply {
+                text = label
+                setPadding(dp(9), dp(4), dp(9), dp(4))
+                background = rounded(if (imdb) Color.rgb(245, 197, 24) else Color.argb(150, 32, 35, 40), dp(5).toFloat())
+            }, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = dp(9) })
+        }
+        item.imdbScore?.let { rating(String.format(Locale.ROOT, "IMDb %.1f/10", it), imdb = true) }
+        item.rottenTomatoes?.let { rating(I18n.text(R.string.home_rotten_tomatoes, it)) }
+        shelfRatings.visibility = if (shelfRatings.childCount == 0) View.GONE else View.VISIBLE
         shelfInfo.animate().alpha(1f).translationY(0f).setDuration(450).setStartDelay(150).start()
         for (k in 0 until shelfDots.childCount) shelfDots.getChildAt(k).alpha = if (k == i) 1f else 0.35f
         // The dock refracts the new picture.
@@ -698,6 +813,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     private fun setShelfVisible(v: Boolean) {
         if (v == shelfShown) return
         shelfShown = v
+        weatherCard.animate().alpha(if (v) 0.65f else 1f).setDuration(350).start()
         if (v) shelf.visibility = View.VISIBLE else bg.visibility = View.VISIBLE
         shelf.animate().cancel()
         // The large clock gives way to the shelf.
@@ -717,6 +833,8 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
 
     private fun hideShelf() {
+        shelfImageRequest++
+        if (shelf.hasFocus()) focusAt(focusedPos)
         shelfRequestId++
         main.removeCallbacks(shelfShow)
         main.removeCallbacks(shelfAdvance)
@@ -732,7 +850,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
 
     fun resumeShelfRotation() {
-        if (shelfShown) {
+        if (shelfShown && !shelf.hasFocus() && appMenu == null) {
             main.removeCallbacks(shelfAdvance)
             main.postDelayed(shelfAdvance, SHELF_SECONDS * 1000L)
         }
@@ -750,6 +868,9 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         val style = prefs.clockStyle
         clockText.visibility = if (style == Prefs.CLOCK_CORNER) View.VISIBLE else View.GONE
         bigClock.visibility = if (style == Prefs.CLOCK_LARGE) View.VISIBLE else View.GONE
+        (bigClock.layoutParams as FrameLayout.LayoutParams).apply {
+            topMargin = if (prefs.weatherEnabled) maxOf(dp(125), (sh * 0.197f).toInt()) else (sh * 0.197f).toInt()
+        }.also { bigClock.layoutParams = it }
         updateClock()
     }
 
@@ -801,8 +922,8 @@ class HomeActivity : Activity(), TileAdapter.Listener {
                 val idx = list.indexOfFirst { it.pkg == focusedPkg }.coerceAtLeast(0)
                 grid.post {
                     // On first show the header buttons grab default focus; the grid should have it.
-                    val headerOk = header.hasFocus() && !firstFocus
-                    if ((forceFocus || (!grid.hasFocus() && !headerOk)) && sheets.isEmpty() && !control.isOpen) focusAt(idx)
+                    val headerOk = (header.hasFocus() || shelf.hasFocus()) && !firstFocus
+                    if ((forceFocus || (!grid.hasFocus() && !headerOk)) && sheets.isEmpty() && appMenu == null && !control.isOpen) focusAt(idx)
                     firstFocus = false
                     // A new list can leave the grid between rows; put the focused row back where it belongs.
                     grid.post { grid.focusedChild?.let { grid.layoutManager?.requestChildRectangleOnScreen(grid, it, Rect(), false, true) } }
@@ -887,34 +1008,25 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
 
     override fun onTileLongPressed(pos: Int, cell: TileCell) {
-        if (moving >= 0) return
+        if (moving >= 0 || appMenu != null) return
         val app = adapter.apps.getOrNull(pos) ?: return
         app.folder?.let { manageFolder(it, pos); return }
-        app.input?.let { i ->
-            showSheet(Sheet(root).title(app.label).message(null)
-                .button(I18n.text(R.string.i18n_homeactivity_006)) { startMove(pos) }
-                .button(I18n.text(R.string.i18n_homeactivity_007)) { pinInput(i, false) }
-                .button(I18n.text(R.string.i18n_homeactivity_008)) {}, restoreFocusTo = pos)
-            return
-        }
-        val s = Sheet(root).title(app.label).message(null)
-            .button(I18n.text(R.string.i18n_homeactivity_009)) { startMove(pos) }
-            .button(I18n.text(R.string.i18n_homeactivity_010)) { chooseFolder(app) }
-            .button(I18n.text(R.string.i18n_homeactivity_011)) {
-                prefs.hidden = prefs.hidden + app.pkg
-                reload()
+        val actions = arrayListOf(AppContextMenu.Action(I18n.text(R.string.home_app_move)) { startMove(pos) })
+        if (app.input != null || (!repo.isOwn(app.pkg) && !repo.isEssential(app.pkg))) {
+            actions += AppContextMenu.Action(I18n.text(R.string.home_app_remove), destructive = true) {
+                app.input?.let { pinInput(it, false) } ?: confirmDelete(app, pos)
             }
-        if (repo.isOwn(app.pkg)) {
-            showSheet(s.button(I18n.text(R.string.i18n_homeactivity_012)) {}, restoreFocusTo = pos)
-            return
         }
-        s.button(I18n.text(R.string.i18n_homeactivity_013)) {
-                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${app.pkg}"))
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        pauseShelfRotation()
+        setGridBlocked(true)
+        appMenu = AppContextMenu(root, cell.card, actions) {
+            appMenu = null
+            if (!isDestroyed && sheets.isEmpty() && !control.isOpen) {
+                setGridBlocked(false)
+                focusAt(pos)
+                resumeShelfRotation()
             }
-        if (!repo.isEssential(app.pkg)) s.button(I18n.text(R.string.i18n_homeactivity_014)) { confirmDelete(app, pos) }
-        s.button(I18n.text(R.string.i18n_homeactivity_015)) {}
-        showSheet(s, restoreFocusTo = pos)
+        }.also { it.show() }
     }
 
     /**
@@ -940,20 +1052,6 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             }
         }
         dialog.show()
-    }
-
-    private fun chooseFolder(app: AppEntry) {
-        val store = Folders(this)
-        val folders = store.read()
-        android.app.AlertDialog.Builder(this).setTitle(I18n.text(R.string.i18n_homeactivity_020))
-            .setItems((listOf(I18n.text(R.string.i18n_homeactivity_021)) + folders.map { it.name }).toTypedArray()) { _, index ->
-                if (index == 0) folderName(I18n.text(R.string.i18n_homeactivity_022)) { name ->
-                    val folder = store.create(name, app.pkg)
-                    val order = adapter.apps.map { if (it.pkg == app.pkg) folder.id else it.pkg }
-                    prefs.order = (order + prefs.order).distinct()
-                    foldersChanged()
-                } else { store.move(app.pkg, folders[index - 1].id); foldersChanged() }
-            }.setNegativeButton(I18n.text(R.string.i18n_homeactivity_023), null).show()
     }
 
     private fun openFolder(folder: AppFolder) {
@@ -1064,8 +1162,8 @@ class HomeActivity : Activity(), TileAdapter.Listener {
             return true
         }
         if (dy < 0 && pos < cols) {
-            // Up from the first row reaches the buttons in the top-right corner.
-            if (ccButton.requestFocus()) focusSound.play(cell, dx, dy)
+            val targetView = if (shelfShown && shelfItems.isNotEmpty()) shelf else ccButton
+            if (targetView.requestFocus()) focusSound.play(cell, dx, dy)
             return true
         }
         if (atEdge) {
@@ -1116,6 +1214,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         val mode = if (blocked) ViewGroup.FOCUS_BLOCK_DESCENDANTS else ViewGroup.FOCUS_AFTER_DESCENDANTS
         grid.descendantFocusability = mode
         header.descendantFocusability = mode
+        shelf.isFocusable = !blocked
     }
 
     fun restoreGridFocus() {
@@ -1139,6 +1238,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
                 sheets.isNotEmpty() -> sheets.last().dismiss()
                 control.isOpen -> control.close()
                 moving >= 0 -> endMove()
+                shelf.hasFocus() -> focusAt(focusedPos)
                 header.hasFocus() -> focusAt(focusedPos)
                 else -> control.open()
             }
@@ -1154,6 +1254,7 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         if (intent.getBooleanExtra(EXTRA_WAKE, false)) return // consume only the pending wake, never re-arm
         // Home pressed while already home: close everything and go back to the top.
         sheets.toList().forEach { it.dismiss() }
+        appMenu?.dismiss()
         control.close()
         if (moving >= 0) endMove()
         // The guard brought the screen back (an app exited to the stock launcher): stay where we were.
@@ -1166,6 +1267,10 @@ class HomeActivity : Activity(), TileAdapter.Listener {
 
     override fun onStart() {
         super.onStart()
+        if (!observingNetwork) {
+            runCatching { getSystemService(ConnectivityManager::class.java).registerDefaultNetworkCallback(networkChanges) }
+                .onSuccess { observingNetwork = true }
+        }
         if (!observingRecommendations) try {
             listOf(TvContract.Channels.CONTENT_URI, TvContract.PreviewPrograms.CONTENT_URI,
                 TvContract.WatchNextPrograms.CONTENT_URI).forEach {
@@ -1188,6 +1293,8 @@ class HomeActivity : Activity(), TileAdapter.Listener {
         control.applyStyle()
         if (getSystemService(android.os.PowerManager::class.java).isInteractive) consumeWakeIntro()
         resumed = true
+        lastWeatherAttempt = 0L
+        observedNetwork = NetworkLocation.fingerprint(this)
         prefs.homeInFront = true
         HomeGuardService.onHomeResumed()
         restartIdle()
@@ -1202,6 +1309,10 @@ class HomeActivity : Activity(), TileAdapter.Listener {
     }
 
     override fun onStop() {
+        if (observingNetwork) {
+            runCatching { getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(networkChanges) }
+            observingNetwork = false
+        }
         if (observingRecommendations) {
             contentResolver.unregisterContentObserver(recommendationObserver)
             observingRecommendations = false

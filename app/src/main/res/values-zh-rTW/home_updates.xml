@@ -1,0 +1,14 @@
+<resources>
+    <string name="home_app_move">移動</string>
+    <string name="home_app_remove">移除</string>
+    <string name="home_recommendation_previous">上一個推薦內容</string>
+    <string name="home_recommendation_next">下一個推薦內容</string>
+    <string name="home_recommendation_browse">瀏覽推薦內容</string>
+    <string name="home_rotten_tomatoes">爛番茄 %1$d%%</string>
+    <string name="home_weather_high">高 %1$d°</string>
+    <string name="home_weather_low">低 %1$d°</string>
+    <string name="home_vpn_off">VPN 未連線</string>
+    <string name="home_vpn_loading">VPN · 正在確認地區…</string>
+    <string name="home_vpn_unknown">VPN 已連線 · 無法取得地區</string>
+    <string name="home_vpn_region">VPN · %1$s</string>
+</resources>

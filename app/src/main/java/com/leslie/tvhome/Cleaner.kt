@@ -2,6 +2,9 @@ package com.leslie.tvhome
 
 import android.app.ActivityManager
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.VpnService
 import android.os.Build
 import android.util.Log
 import dadb.AdbKeyPair
@@ -76,8 +79,9 @@ object Cleaner {
     }
 
     /**
-     * Manual cleanup stops unprotected third-party apps. Automatic cleanup only requests
-     * cached-process cleanup; missing foreground evidence skips automatic work.
+     * Manual cleanup stops unprotected third-party apps. Automatic cleanup requires a known
+     * foreground app and only requests cleanup of observed cached processes. An unavailable
+     * service inventory skips all cleanup.
      * Blocking; call off the main thread.
      */
     fun clean(ctx: Context, spare: String? = null, automatic: Boolean = false): Result {
@@ -87,7 +91,11 @@ object Cleaner {
         // Automatic cleanup never force-stops apps: downloads/casting may be active without a visible window.
         val mode = CleanupPolicy.mode(automatic, foreground)
         if (mode == CleanupPolicy.Mode.SKIP) return Result(before, before, 0, false, skipped = true)
-        val keep = prefs.keep + setOfNotNull(ctx.packageName, foreground) + protectedServices(ctx)
+        val services = runCatching { protectedServices(ctx) }.getOrElse {
+            Log.w("Cleaner", "Cannot inventory protected services; skipping cleanup", it)
+            return Result(before, before, 0, false, skipped = true)
+        }
+        val keep = prefs.keep + setOfNotNull(ctx.packageName, foreground) + services
         var stopped = 0
         var failed = 0
         var viaAdb = false
@@ -105,8 +113,13 @@ object Cleaner {
             val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
             val packages = ctx.packageManager.getInstalledApplications(0)
                 .filter { it.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM == 0 }
-                .map { it.packageName }
-            for (pkg in CleanupPolicy.targets(packages, keep)) am.killBackgroundProcesses(pkg)
+                .map { it.packageName }.toSet()
+            val processes = am.runningAppProcesses.orEmpty()
+            val cached = processes.filter { it.importance >= ActivityManager.RunningAppProcessInfo.IMPORTANCE_CACHED }
+                .flatMap { it.pkgList.orEmpty().toList() }.filter { it in packages }
+            val active = processes.filter { it.importance < ActivityManager.RunningAppProcessInfo.IMPORTANCE_CACHED }
+                .flatMap { it.pkgList.orEmpty().toList() }.toSet()
+            for (pkg in CleanupPolicy.cachedTargets(cached, active, keep)) am.killBackgroundProcesses(pkg)
         }
         Thread.sleep(1500)
         val r = Result(before, availMb(ctx), stopped, viaAdb, failed)
@@ -120,17 +133,18 @@ object Cleaner {
         val names = listOf("enabled_accessibility_services", "enabled_notification_listeners", "default_input_method")
         val keep = names.flatMap { android.provider.Settings.Secure.getString(r, it).orEmpty().split(':') }
             .mapNotNull { android.content.ComponentName.unflattenFromString(it)?.packageName }.toMutableSet()
+        val pm = ctx.packageManager
+        val advertised = pm.queryIntentServices(Intent(VpnService.SERVICE_INTERFACE), PackageManager.MATCH_DISABLED_COMPONENTS)
+            .map { it.serviceInfo.packageName }
+        val declared = pm.getInstalledPackages(PackageManager.GET_SERVICES or PackageManager.MATCH_DISABLED_COMPONENTS)
+            .flatMap { pkg -> pkg.services.orEmpty().map { CleanupPolicy.Service(pkg.packageName, it.permission) } }
+        keep.addAll(CleanupPolicy.vpnPackages(advertised, declared))
         val am = ctx.getSystemService(ActivityManager::class.java)
         am.runningAppProcesses.orEmpty().filter { it.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE }
             .forEach { keep.addAll(it.pkgList.orEmpty()) }
-        runCatching {
-            ctx.getSystemService(android.media.session.MediaSessionManager::class.java)
-                .getActiveSessions(android.content.ComponentName(ctx, RevivalListener::class.java))
-                .forEach { keep.add(it.packageName) }
-        }.onFailure {
-            // No reliable playback inventory: keep all third-party apps out of destructive cleanup.
-            keep.addAll(ctx.packageManager.getInstalledApplications(0).map { it.packageName })
-        }
+        ctx.getSystemService(android.media.session.MediaSessionManager::class.java)
+            .getActiveSessions(android.content.ComponentName(ctx, RevivalListener::class.java))
+            .forEach { keep.add(it.packageName) }
         return keep
     }
 

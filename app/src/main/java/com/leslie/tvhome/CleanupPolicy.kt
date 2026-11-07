@@ -2,6 +2,8 @@ package com.leslie.tvhome
 
 internal object CleanupPolicy {
     enum class Mode { SKIP, CACHE_ONLY, DEEP }
+    data class Service(val packageName: String, val permission: String?)
+
     fun mode(automatic: Boolean, foreground: String?): Mode = when {
         automatic && foreground == null -> Mode.SKIP
         automatic || foreground == null -> Mode.CACHE_ONLY
@@ -11,6 +13,13 @@ internal object CleanupPolicy {
 
     fun targets(packages: Collection<String>, protected: Set<String>): List<String> =
         packages.filter { packageName.matches(it) && it !in protected }.distinct()
+
+    fun cachedTargets(cached: Collection<String>, active: Set<String>, protected: Set<String>): List<String> =
+        targets(cached, protected + active)
+
+    fun vpnPackages(advertised: Collection<String>, declared: Collection<Service>): Set<String> =
+        (advertised + declared.filter { it.permission == "android.permission.BIND_VPN_SERVICE" }
+            .map { it.packageName }).toSet()
 
     fun foreground(dump: String): String? {
         val lines = dump.lineSequence().filter {

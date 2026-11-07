@@ -18,7 +18,7 @@ import android.os.Build
  * - Brightness: TCL ignores the standard `screen_brightness` key and has no sysfs backlight node;
  *   the backlight lives behind `com.tcl.tv.pq` / TPictureManager, so the slider stays hidden and
  *   the backlight is reached through TCL's settings app ([settingsIntent]).
- * - Settings: nothing answers `android.settings.SETTINGS`; TCL's settings app opens with ACTION_MAIN.
+ * - Settings: global firmware handles Android's settings action. China firmware may expose only TCL's launcher entry.
  */
 class TclAdapter(ctx: Context) : AndroidAdapter(ctx) {
     override fun matches() = isTcl() || installed(LIVE_TV)
@@ -40,9 +40,14 @@ class TclAdapter(ctx: Context) : AndroidAdapter(ctx) {
     override fun inputSummary(list: List<Input>) =
         if (list.firstOrNull()?.uri == URI_PREFIX) I18n.text(R.string.i18n_tcladapter_002) else super.inputSummary(list)
 
-    override fun settingsIntent() =
-        if (installed(SETTINGS_PKG)) Intent(Intent.ACTION_MAIN).setComponent(ComponentName(SETTINGS_PKG, "$SETTINGS_PKG.ui.MainActivity"))
-        else super.settingsIntent()
+    override fun settingsIntent(): Intent {
+        resolvable(super.settingsIntent())?.let { return it }
+        val pm = ctx.packageManager
+        pm.getLeanbackLaunchIntentForPackage(SETTINGS_PKG)?.let { resolvable(it) }?.let { return it }
+        pm.getLaunchIntentForPackage(SETTINGS_PKG)?.let { resolvable(it) }?.let { return it }
+        return resolvable(Intent(Intent.ACTION_MAIN)
+            .setComponent(ComponentName(SETTINGS_PKG, "$SETTINGS_PKG.ui.MainActivity"))) ?: super.settingsIntent()
+    }
 
     companion object {
         private const val URI_PREFIX = "tcl-input://"

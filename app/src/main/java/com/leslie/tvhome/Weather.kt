@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
 /**
  * Optional weather data engine. No access to location permission or network until the
  * user enables the card or explicitly searches for a city. No timer/service of its own.
- * Open-Meteo is the only provider; preserve its attribution and license conditions.
+ * Forecasts and city search use Open-Meteo. Automatic regions use NetworkLocation.
  */
 object Weather {
     const val FRESH_MS = 30L * 60_000
@@ -48,8 +48,41 @@ object Weather {
             val lon = o.optDouble("longitude", Double.NaN)
             if (!lat.isFinite() || !lon.isFinite() || lat !in -90.0..90.0 || lon !in -180.0..180.0) null
             else City(listOf(o.optString("name"), o.optString("admin1"), o.optString("country"))
-                .filter { it.isNotBlank() }.distinct().joinToString(", "), lat, lon)
+                .filter { it.isNotBlank() }.distinct().joinToString(", ").let {
+                    if (I18n.isChinese()) TaiwanText.convert(it) else it
+                }, lat, lon)
         }
+    }
+
+    private fun manualCity(prefs: Prefs): City? = prefs.weatherCity.takeIf { it.isNotBlank() }
+        ?.let { City(it, prefs.weatherLatitude, prefs.weatherLongitude) }
+
+    private fun NetworkLocation.Place.asCity() = City(locality, latitude, longitude)
+
+    /** Blocking when automatic location is enabled. Manual choices remain independent of IP. */
+    fun selectedCity(ctx: Context, prefs: Prefs, force: Boolean = false): City? {
+        if (!prefs.weatherEnabled) return null
+        return if (prefs.weatherAutomatic) NetworkLocation.current(ctx, force)?.asCity()
+        else manualCity(prefs)
+    }
+
+    fun cachedSelected(ctx: Context, prefs: Prefs): Reading? {
+        if (!prefs.weatherEnabled) return null
+        val city = if (prefs.weatherAutomatic) NetworkLocation.cached(ctx)?.asCity() else manualCity(prefs)
+        return city?.let { cached(ctx, it) }
+    }
+
+    /** Run off the main thread. A changed route or setting discards the in-flight result. */
+    fun loadSelected(ctx: Context, prefs: Prefs, forceLocation: Boolean = false): Reading? {
+        val automatic = prefs.weatherAutomatic
+        val fingerprint = if (automatic) NetworkLocation.fingerprint(ctx) else null
+        val city = selectedCity(ctx, prefs, forceLocation) ?: return null
+        val reading = load(ctx, city)
+        if (!prefs.weatherEnabled || prefs.weatherAutomatic != automatic) return null
+        if (automatic) {
+            if (NetworkLocation.fingerprint(ctx) != fingerprint || NetworkLocation.cached(ctx)?.asCity() != city) return null
+        } else if (manualCity(prefs) != city) return null
+        return reading
     }
 
     private fun decode(text: String, city: City, now: Long, maxAge: Long): Reading? = runCatching {

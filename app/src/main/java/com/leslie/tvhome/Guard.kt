@@ -378,6 +378,14 @@ class ConfigReceiver : BroadcastReceiver() {
         i.getStringExtra("focus_style")?.let { prefs.focusStyle = it }
         i.getStringExtra("clock_style")?.let { prefs.clockStyle = it }
         if (i.hasExtra("clock_24")) prefs.clock24 = i.getBooleanExtra("clock_24", false)
+        if (i.hasExtra("weather_enabled")) prefs.weatherEnabled = i.getBooleanExtra("weather_enabled", false)
+        if (i.hasExtra("weather_automatic")) prefs.weatherAutomatic = i.getBooleanExtra("weather_automatic", true)
+        if (i.hasExtra("network_location_enabled")) prefs.networkLocationEnabled = i.getBooleanExtra("network_location_enabled", false)
+        val vpnProtected = i.getStringExtra("protect_vpn")?.let { VpnBackground.protect(c, it) }
+        if (vpnProtected == true) Thread {
+            runCatching { VpnBackground.ensure(c.applicationContext) }
+                .onFailure { Log.w("VpnBackground", "Could not apply background protection", it) }
+        }.start()
         i.getStringExtra("aerial_quality")?.takeIf {
             it in listOf(MediaQuality.AUTO, MediaQuality.COMPAT, MediaQuality.UHD)
         }?.let { prefs.aerialQuality = it }
@@ -393,6 +401,7 @@ class ConfigReceiver : BroadcastReceiver() {
         Guard.ensure(c)
         resultData = "guard=${prefs.guard} keep_adb=${prefs.keepAdb} secure_settings=${Guard.hasSecureSettings(c)} " +
             "background=${prefs.background} cc_style=${prefs.ccStyle} focus_style=${prefs.focusStyle} clock_style=${prefs.clockStyle} clock_24=${prefs.clock24} " +
-            "intro=${prefs.intro} intro_source=${prefs.introSource} wake_delay=${prefs.wakeDelay} own_icon=${prefs.ownIcon} settings_bg=${prefs.settingsBg} low_end=${Device.isLowEnd(c)} aerial_quality=${prefs.aerialQuality}"
+            "intro=${prefs.intro} intro_source=${prefs.introSource} wake_delay=${prefs.wakeDelay} own_icon=${prefs.ownIcon} settings_bg=${prefs.settingsBg} low_end=${Device.isLowEnd(c)} aerial_quality=${prefs.aerialQuality} " +
+            "weather_enabled=${prefs.weatherEnabled} weather_automatic=${prefs.weatherAutomatic} network_location_enabled=${prefs.networkLocationEnabled} vpn_protected=$vpnProtected"
     }
 }

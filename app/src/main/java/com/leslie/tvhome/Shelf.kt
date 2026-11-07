@@ -12,7 +12,14 @@ import java.net.URL
 
 /** App-specific Top Shelf sources. Public catalogues never masquerade as signed-in recommendations. */
 object Shelf {
-    data class Item(val title: String, val meta: String, val image: String, val alternateImages: List<String> = emptyList())
+    data class Item(
+        val title: String,
+        val meta: String,
+        val image: String,
+        val alternateImages: List<String> = emptyList(),
+        val imdbScore: Double? = null,
+        val rottenTomatoes: Int? = null,
+    )
     data class Source(val name: String, val ttl: Long, val fetch: (Context) -> List<Item>)
 
     private const val UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
@@ -30,7 +37,7 @@ object Shelf {
     // Resolve the provider off the UI thread in items(), never while focus is moving.
     fun has(pkg: String) = pkg.isNotBlank()
     fun sourceName(pkg: String, label: String) = sources[pkg]?.name
-        ?: JustWatchCatalog.matchedName(pkg, label)?.let { I18n.text(R.string.i18n_shelf_008, it) }
+        ?: JustWatchCatalog.matchedName(pkg, label)
         ?: label
 
     fun invalidate(pkg: String) { synchronized(cache) { cache.remove(pkg) } }
@@ -41,18 +48,24 @@ object Shelf {
         val fixed = sources[pkg]
         synchronized(cache) {
             val ttl = fixed?.ttl ?: CATALOG_TTL
-            cache[pkg]?.let { (at, list) -> if (System.currentTimeMillis() - at < ttl) return list }
+            cache[pkg]?.let { (at, list) ->
+                if (System.currentTimeMillis() - at < ttl) return localized(list, I18n.isChinese())
+            }
         }
         val src = fixed ?: run {
             val provider = JustWatchCatalog.match(ctx, pkg, label) ?: return emptyList()
-            Source(I18n.text(R.string.i18n_shelf_008, provider.name), CATALOG_TTL) {
+            Source(provider.name, CATALOG_TTL) {
                 JustWatchCatalog.titles(provider)
             }
         }
         val list = try { src.fetch(ctx) } catch (e: Exception) { Log.w("Shelf", "$pkg failed", e); emptyList() }
         if (list.isNotEmpty()) synchronized(cache) { cache[pkg] = System.currentTimeMillis() to list }
-        return list
+        return localized(list, I18n.isChinese())
     }
+
+    internal fun localized(items: List<Item>, chinese: Boolean): List<Item> = if (chinese) {
+        items.map { it.copy(title = TaiwanText.convert(it.title), meta = TaiwanText.convert(it.meta)) }
+    } else items
 
     /** Downloads (or reads from the disk cache) an item's picture. */
     fun image(ctx: Context, item: Item): Bitmap? = (listOf(item.image) + item.alternateImages)

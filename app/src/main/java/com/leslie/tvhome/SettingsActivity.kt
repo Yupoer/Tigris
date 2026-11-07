@@ -240,17 +240,25 @@ class SettingsActivity : Activity() {
         section(I18n.text(R.string.weather_settings))
         row(I18n.text(R.string.weather_settings), I18n.text(R.string.weather_settings_help),
             { onOff(prefs.weatherEnabled) }) { prefs.weatherEnabled = !prefs.weatherEnabled }
+        row(I18n.text(R.string.network_location_enabled_title), I18n.text(R.string.network_location_enabled_help),
+            { onOff(prefs.networkLocationEnabled) }) {
+            prefs.networkLocationEnabled = !prefs.networkLocationEnabled
+            NetworkLocation.invalidate()
+        }
+        row(I18n.text(R.string.network_weather_auto_title), I18n.text(R.string.network_weather_auto_help),
+            { onOff(prefs.weatherAutomatic) }) { prefs.weatherAutomatic = !prefs.weatherAutomatic }
         row(I18n.text(R.string.weather_unit_settings), I18n.text(R.string.weather_unit_help),
             { if (prefs.weatherFahrenheit) "°F" else "°C" }) {
             prefs.weatherFahrenheit = !prefs.weatherFahrenheit
         }
-        row(I18n.text(R.string.weather_city_settings), I18n.text(R.string.weather_city_help),
-            { prefs.weatherCity.ifBlank { I18n.text(R.string.weather_city_unknown) } }, chevron = true) { value ->
+        row(I18n.text(R.string.weather_city_settings), I18n.text(R.string.network_weather_manual_city_help),
+            { prefs.weatherCity.ifBlank { I18n.text(R.string.weather_city_unknown) } }, chevron = true) {
             selectWeatherCity { city ->
                 prefs.weatherCity = city.name
                 prefs.weatherLatitude = city.latitude
                 prefs.weatherLongitude = city.longitude
-                value.text = city.name
+                prefs.weatherAutomatic = false
+                show(Page.MAIN, opener)
             }
         }
 
@@ -469,7 +477,11 @@ class SettingsActivity : Activity() {
                 v.text = onOff(on)
             }
         }
-        row(I18n.text(R.string.i18n_settingsactivity_136), I18n.text(R.string.i18n_settingsactivity_137), { "" }, chevron = true) { runCatching { startActivity(TvControls(this).settingsIntent()) } }
+        row(I18n.text(R.string.i18n_settingsactivity_136), I18n.text(R.string.i18n_settingsactivity_137), { "" }, chevron = true) {
+            if (!TvControls(this).openSettings()) {
+                Toast.makeText(this, I18n.text(R.string.system_settings_unavailable), Toast.LENGTH_LONG).show()
+            }
+        }
         row(I18n.text(R.string.i18n_settingsactivity_138), I18n.text(R.string.i18n_settingsactivity_139),
             { I18n.text(R.string.i18n_settingsactivity_140) + packageManager.getPackageInfo(packageName, 0).versionName }) {}
     }

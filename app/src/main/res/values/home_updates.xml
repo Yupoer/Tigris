@@ -1,0 +1,14 @@
+<resources>
+    <string name="home_app_move">Move</string>
+    <string name="home_app_remove">Remove</string>
+    <string name="home_recommendation_previous">Previous recommendation</string>
+    <string name="home_recommendation_next">Next recommendation</string>
+    <string name="home_recommendation_browse">Browse recommendations</string>
+    <string name="home_rotten_tomatoes">Rotten Tomatoes %1$d%%</string>
+    <string name="home_weather_high">H:%1$d°</string>
+    <string name="home_weather_low">L:%1$d°</string>
+    <string name="home_vpn_off">VPN disconnected</string>
+    <string name="home_vpn_loading">VPN · Locating…</string>
+    <string name="home_vpn_unknown">VPN connected · Location unavailable</string>
+    <string name="home_vpn_region">VPN · %1$s</string>
+</resources>

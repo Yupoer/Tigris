@@ -24,7 +24,8 @@ object JustWatchCatalog {
           popularTitles(country: ${"$"}country, filter: ${"$"}filter, first: ${"$"}first,
                         sortBy: POPULAR, sortRandomSeed: 0) {
             edges { node { id content(country: ${"$"}country, language: ${"$"}language) {
-              title originalReleaseYear backdrops(profile: S1920, format: JPG) { backdropUrl }
+              title originalReleaseYear scoring { imdbScore tomatoMeter }
+              backdrops(profile: S1920, format: JPG) { backdropUrl }
             } } }
           }
         }
@@ -105,8 +106,12 @@ object JustWatchCatalog {
             .put("monetizationTypes", JSONArray().put("FLATRATE").put("FREE").put("ADS"))
         val variables = JSONObject().put("country", "TW").put("language", "zh")
             .put("first", 48).put("filter", filter)
-        val rows = JSONObject(request(TITLES_QUERY, variables)).getJSONObject("data")
-            .getJSONObject("popularTitles").getJSONArray("edges")
+        return parseTitles(request(TITLES_QUERY, variables))
+    }
+
+    internal fun parseTitles(body: String): List<Shelf.Item> {
+        val rows = JSONObject(body).optJSONObject("data")
+            ?.optJSONObject("popularTitles")?.optJSONArray("edges") ?: return emptyList()
         val seen = HashSet<String>()
         val result = ArrayList<Shelf.Item>()
         for (index in 0 until rows.length()) {
@@ -120,7 +125,13 @@ object JustWatchCatalog {
                 .firstOrNull { it.startsWith("/backdrop/") && "/s1920/" in it && ".." !in it } ?: continue
             seen.add(id)
             val year = content.optInt("originalReleaseYear").takeIf { it in 1900..2100 }?.toString() ?: ""
-            result.add(Shelf.Item(title, year, "https://images.justwatch.com$path"))
+            val scoring = content.optJSONObject("scoring")
+            val imdb = (scoring?.opt("imdbScore") as? Number)?.toDouble()
+                ?.takeIf { it.isFinite() && it > 0.0 && it <= 10.0 }
+            val tomatoes = (scoring?.opt("tomatoMeter") as? Number)?.toDouble()
+                ?.takeIf { it.isFinite() && it in 0.0..100.0 && it % 1.0 == 0.0 }?.toInt()
+            result.add(Shelf.Item(title, year, "https://images.justwatch.com$path",
+                imdbScore = imdb, rottenTomatoes = tomatoes))
             if (result.size == 12) break
         }
         return result

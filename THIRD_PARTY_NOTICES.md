@@ -8,6 +8,7 @@
 - **ZXing core** (build dependency) — Copyright ZXing authors, Apache License 2.0.
 - **Aerial** (https://github.com/pengchujin/aerial-tv) — MIT License, Copyright (c) 2026 pengchujin. Tigris ports its home guard and revival (`Guard.kt`), Xiaomi device details (`tv/XiaomiAdapter.kt`, `AppRepo.kt`), the phone page (`PhoneServer.kt`, `assets/web/index.html`, restyled), `tools/tcast-push.py`, and ships its aerial film catalogue `app/src/main/assets/aerials.json` (addresses and place names from Apple's public tvOS aerial resources; the films themselves stream from Apple and are not included).
 - **Apple Root CA** (`app/src/main/res/raw/apple_root_ca.pem`) — Apple's public root certificate, trusted only for `sylvan.apple.com`, which serves the aerial films.
+- **OpenCC** dictionaries (`app/src/main/resources/opencc/`). Copyright OpenCC contributors, Apache License 2.0, https://github.com/BYVoid/OpenCC. The `STPhrases`, `STCharacters`, `TWPhrases`, and `TWVariants` dictionary entries are from `opencc-python-reimplemented` 0.1.7 (https://github.com/yichen0831/opencc-python). Tigris normalizes line endings and applies them in the `s2twp` conversion order. Full license and upstream notice are bundled alongside the dictionaries.
 
 
 ## 2.0.4 bundled presentation assets

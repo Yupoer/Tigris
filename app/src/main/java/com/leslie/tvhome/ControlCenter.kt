@@ -118,12 +118,23 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
     private var inputs: List<Input> = emptyList()
     private var volumeTarget = "speaker"
     private val status = ctx.text(11f, Color.argb(190, 255, 255, 255))
+    private val vpnStatus = ctx.text(12f, Color.argb(225, 255, 255, 255), weight = 500).apply {
+        maxLines = 2
+        ellipsize = android.text.TextUtils.TruncateAt.END
+        setPadding(ctx.dp(14), ctx.dp(10), ctx.dp(14), ctx.dp(10))
+        background = rounded(Color.argb(120, 28, 32, 40), ctx.dp(16).toFloat())
+    }
+    private var locationRefreshing = false
+    private var locationRequest = 0L
+    private var lastLocationAttempt = 0L
+    private var locationNetwork = ""
     private val focusables = ArrayList<View>()
     private val io = Executors.newSingleThreadExecutor()
     private val tv = TvControls(ctx)
     private val ticker = object : Runnable {
         override fun run() {
             followVolume()
+            refreshVpnLocation()
             host.postDelayed(this, 2_000)
         }
     }
@@ -156,6 +167,7 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
             LinearLayout.LayoutParams(-1, cell).apply { topMargin = gap })
         top.addView(right, LinearLayout.LayoutParams(0, -2, 1f))
         panel.addView(top)
+        panel.addView(vpnStatus, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(10) })
         // Keep privileged-action status beside the power controls, not below Input.
         panel.addView(status, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(10) })
 
@@ -711,6 +723,7 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
         networkModule.title.text = if (wired) I18n.text(R.string.i18n_controlcenter_018) else "Wi-Fi"
         networkModule.sub.text = if (caps == null) I18n.text(R.string.i18n_controlcenter_019) else I18n.text(R.string.i18n_controlcenter_020)
         networkModule.sub.visibility = View.VISIBLE
+        refreshVpnLocation()
         if (refreshing) return
         refreshing = true
         io.execute {
@@ -729,6 +742,37 @@ class ControlCenter(private val home: HomeActivity, private val host: FrameLayou
                 inputs = list
                 inputModule.sub.visibility = View.VISIBLE
                 inputModule.sub.text = list.firstOrNull { it.uri == cur }?.name ?: summary
+            }
+        }
+    }
+
+    private fun refreshVpnLocation() {
+        val vpn = NetworkLocation.vpnActive(ctx)
+        val cached = NetworkLocation.cached(ctx)
+        val fingerprint = NetworkLocation.fingerprint(ctx)
+        val now = android.os.SystemClock.elapsedRealtime()
+        val canLookup = vpn && isOpen && prefs.networkLocationEnabled && cached == null &&
+            (fingerprint != locationNetwork || now - lastLocationAttempt >= 30_000L)
+        vpnStatus.text = when {
+            !vpn -> I18n.text(R.string.home_vpn_off)
+            cached != null -> I18n.text(R.string.home_vpn_region, cached.label)
+            !prefs.networkLocationEnabled || (!canLookup && !locationRefreshing) -> I18n.text(R.string.home_vpn_unknown)
+            else -> I18n.text(R.string.home_vpn_loading)
+        }
+        if (!canLookup || locationRefreshing) return
+        val request = ++locationRequest
+        locationNetwork = fingerprint
+        lastLocationAttempt = now
+        locationRefreshing = true
+        io.execute {
+            val place = NetworkLocation.current(ctx)
+            host.post {
+                locationRefreshing = false
+                if (destroyed || request != locationRequest || !isOpen) return@post
+                if (fingerprint != NetworkLocation.fingerprint(ctx)) { refreshVpnLocation(); return@post }
+                vpnStatus.text = if (!NetworkLocation.vpnActive(ctx)) I18n.text(R.string.home_vpn_off)
+                    else place?.let { I18n.text(R.string.home_vpn_region, it.label) }
+                        ?: I18n.text(R.string.home_vpn_unknown)
             }
         }
     }

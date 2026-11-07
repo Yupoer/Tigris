@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_location_enabled_title">自動偵測網路地區</string>
+    <string name="network_location_enabled_help">ipwho.is 會依這台電視的對外 IP 回傳城市與國家，不使用 GPS。</string>
+    <string name="network_weather_auto_title">自動判斷天氣位置</string>
+    <string name="network_weather_auto_help">使用目前網路地區的天氣，需先開啟網路地區偵測。VPN 可能改變偵測到的地區。</string>
+    <string name="network_weather_manual_city_help">自行選擇城市後，會改用手動天氣位置。</string>
+    <string name="network_weather_locating">正在判斷天氣位置…</string>
+    <string name="network_vpn_region_loading">VPN · 正在判斷地區…</string>
+    <string name="network_vpn_region_unknown">VPN 已連線 · 地區暫時無法取得</string>
+    <string name="network_vpn_disconnected">VPN 未連線</string>
+    <string name="network_vpn_region">VPN · %1$s</string>
+</resources>

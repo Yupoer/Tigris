@@ -25,6 +25,7 @@ class KeeperService : Service() {
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     private lateinit var prefs: Prefs
+    private lateinit var foregroundNotification: Notification
 
     private val screenOff = object : BroadcastReceiver() {
         override fun onReceive(c: Context, i: Intent) {
@@ -48,16 +49,27 @@ class KeeperService : Service() {
         }
     }
 
+    private val vpnKeeper = object : Runnable {
+        override fun run() {
+            if (getSystemService(PowerManager::class.java).isInteractive)
+                worker.execute { runCatching { VpnBackground.ensure(applicationContext) }
+                    .onFailure { Log.w("VpnBackground", "Could not check background protection", it) } }
+            main.postDelayed(this, VpnBackgroundPolicy.INTERVAL_MS)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         prefs = Prefs(this)
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(NotificationChannel(CH, I18n.text(R.string.i18n_keeperservice_001), NotificationManager.IMPORTANCE_MIN))
-        startForeground(1, Notification.Builder(this, CH)
+        foregroundNotification = Notification.Builder(this, CH)
             .setSmallIcon(R.drawable.ic_memory)
             .setContentTitle(I18n.text(R.string.i18n_keeperservice_002))
             .setContentText(I18n.text(R.string.i18n_keeperservice_003))
-            .build())
+            .build()
+        startForeground(1, foregroundNotification)
+        Log.i("TigrisKeeper", "Foreground service created")
         registerReceiver(screenOff, IntentFilter(Intent.ACTION_SCREEN_OFF))
         contentResolver.registerContentObserver(Settings.Global.getUriFor(Settings.Global.ADB_ENABLED), false, adbObserver)
         contentResolver.registerContentObserver(Settings.Global.getUriFor("adb_wifi_enabled"), false, adbObserver)
@@ -65,9 +77,12 @@ class KeeperService : Service() {
         // START_STICKY may revive us without rebinding the enabled accessibility service.
         main.postDelayed({ Guard.rebindIfStalled(this) }, 5_000)
         schedule()
+        main.post(vpnKeeper)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startForeground(1, foregroundNotification)
+        Log.i("TigrisKeeper", "Foreground service started id=$startId")
         if (intent?.action == ACTION_RESCHEDULE) schedule()
         return START_STICKY
     }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_location_enabled_title">Detect network region</string>
+    <string name="network_location_enabled_help">ipwho.is uses this TV’s external IP to return its city and country. GPS is not used.</string>
+    <string name="network_weather_auto_title">Automatic weather location</string>
+    <string name="network_weather_auto_help">Use the current network region for weather. Requires network region detection. A VPN can change the reported region.</string>
+    <string name="network_weather_manual_city_help">Choose a city to switch to a manual weather location.</string>
+    <string name="network_weather_locating">Locating weather…</string>
+    <string name="network_vpn_region_loading">VPN · Locating region…</string>
+    <string name="network_vpn_region_unknown">VPN connected · Region unavailable</string>
+    <string name="network_vpn_disconnected">VPN disconnected</string>
+    <string name="network_vpn_region">VPN · %1$s</string>
+</resources>
